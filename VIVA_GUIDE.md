@@ -16,7 +16,7 @@ This is your single source of truth for the viva. Open this file in VS Code prev
 | 4 | Jenkins CI/CD | ✅ built (file) | `jenkins/Jenkinsfile` | Walk through 9 stages incl. parallel test/lint, trivy scan, manual prod gate |
 | 5 | Terraform | ✅ built | `terraform/envs/prod/` + `modules/{vpc,eks,rds}/` | `terraform/envs/prod/main.tf` — VPC + EKS 1.29 + RDS multi-AZ |
 | 6 | Kubernetes | ✅ built | `k8s/base/` + `k8s/overlays/prod/` (Kustomize) | `kustomize build k8s/overlays/prod` — Deployment + Service + Ingress + HPA + PDB + NetworkPolicy |
-| 7 | Prometheus + Grafana | ✅ built | `monitoring/` | Grafana at `:3000` (admin/admin) showing 2 dashboards, Prometheus at `:9090/alerts` |
+| 7 | Prometheus + Grafana | ✅ built | `monitoring/` | Grafana at `:3001` (admin/admin) showing 2 dashboards, Prometheus at `:9090/alerts` |
 | 8 | ELK Logging | ✅ built | `logging/` | Kibana at `:5601` — import `logging/kibana/dashboard-sim-prov.ndjson` |
 | 9 | Vault | ✅ built | `vault/` | Vault UI at `:8200` (token: `root-dev-token`), `vault/scripts/bootstrap.sh` |
 | 10 | Architecture Diagram | ✅ built | `docs/assets/architecture.svg` + interactive version in `docs/index.html` | Open `docs/index.html` in browser — hover nodes for tooltips |
@@ -75,7 +75,7 @@ make logs SERVICE=<name>
 | Operator dashboard | http://localhost:5173 | — |
 | API Swagger docs | http://localhost:8000/docs | — |
 | API metrics | http://localhost:8000/metrics | — |
-| Grafana | http://localhost:3000 | admin / admin |
+| Grafana | http://localhost:3001 | admin / admin |
 | Prometheus | http://localhost:9090 | — |
 | Alertmanager | http://localhost:9093 | — |
 | Kibana | http://localhost:5601 | — |
@@ -130,7 +130,7 @@ Open `docs/index.html` in browser. Scroll slowly through the hero, "What we buil
 Walk through each layer in order. For each, show the file + the running thing.
 
 **a. Containerization** — open `docker/Dockerfile.api` in VS Code.
-> *"Multi-stage build, distroless runtime, non-root user, healthcheck. No shell in the final image — smallest attack surface."*
+> *"Multi-stage build — python:3.11-slim builder + slim runtime, runs as a dedicated non-root user (`app`, uid 1001), tini as PID 1 for proper signal handling, libpq5 only at runtime, curl healthcheck. Build cache is layered so a code change is a 5-second rebuild."*
 
 **b. CI/CD** — open `jenkins/Jenkinsfile`.
 > *"Nine stages — Checkout, parallel Lint + Unit Tests, Build Images, Trivy security scan, Push, Deploy to staging via Kustomize, Smoke test, Manual approval gate, Deploy to prod, Slack notification."*
@@ -143,7 +143,7 @@ Walk through each layer in order. For each, show the file + the running thing.
 
 If you have kustomize installed: `kustomize build k8s/overlays/prod | head -60`.
 
-**e. Monitoring** — open `localhost:3000` → Dashboards → SIM Provisioning Operations.
+**e. Monitoring** — open `localhost:3001` → Dashboards → SIM Provisioning Operations.
 > *"RED metrics — rate, errors, duration. Plus business KPIs — SIMs by status, activation latency p50/p95/p99, MSISDN pool remaining, HLR call success rate."*
 Then `localhost:9090/alerts` — show the 8 alerting rules.
 
@@ -223,7 +223,7 @@ make up && sleep 45 && make seed && make smoke
 echo "if you see 'OK' above, you're good"
 open docs/index.html
 open http://localhost:5173
-open http://localhost:3000
+open http://localhost:3001
 open http://localhost:5601
 open http://localhost:8200
 ```

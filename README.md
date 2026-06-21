@@ -30,7 +30,7 @@ Then open:
 | ----------- | -------------------------------- | ------------------------------- |
 | Frontend    | <http://localhost:5173>          | Operator console                |
 | API docs    | <http://localhost:8000/docs>     | FastAPI Swagger                 |
-| Grafana     | <http://localhost:3000>          | admin / admin                   |
+| Grafana     | <http://localhost:3001>          | admin / admin                   |
 | Prometheus  | <http://localhost:9090>          | targets, rules                  |
 | Alertmanager| <http://localhost:9093>          |                                 |
 | Kibana      | <http://localhost:5601>          | import the bundled dashboard    |

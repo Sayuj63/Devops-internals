@@ -11,6 +11,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0001_initial"
 down_revision: Union[str, None] = None
@@ -18,21 +19,32 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-SIM_STATUS = sa.Enum(
-    "PENDING",
-    "ALLOCATED",
-    "ACTIVE",
-    "SUSPENDED",
-    "PORTED",
-    "RECYCLED",
-    name="sim_status",
-)
+def _sim_status_type(bind) -> sa.types.TypeEngine:
+    if bind.dialect.name == "postgresql":
+        return postgresql.ENUM(
+            "PENDING", "ALLOCATED", "ACTIVE",
+            "SUSPENDED", "PORTED", "RECYCLED",
+            name="sim_status",
+            create_type=False,
+        )
+    return sa.Enum(
+        "PENDING", "ALLOCATED", "ACTIVE",
+        "SUSPENDED", "PORTED", "RECYCLED",
+        name="sim_status",
+    )
 
 
 def upgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
-        SIM_STATUS.create(bind, checkfirst=True)
+        op.execute(
+            "DO $$ BEGIN "
+            "CREATE TYPE sim_status AS ENUM "
+            "('PENDING','ALLOCATED','ACTIVE','SUSPENDED','PORTED','RECYCLED'); "
+            "EXCEPTION WHEN duplicate_object THEN null; "
+            "END $$;"
+        )
+    SIM_STATUS = _sim_status_type(bind)
 
     op.create_table(
         "plans",
@@ -137,4 +149,4 @@ def downgrade() -> None:
 
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
-        SIM_STATUS.drop(bind, checkfirst=True)
+        op.execute("DROP TYPE IF EXISTS sim_status")

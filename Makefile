@@ -24,7 +24,7 @@ up: ## Start the local stack
 	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
 	@echo "Frontend  : http://localhost:5173"
 	@echo "API       : http://localhost:8000/docs"
-	@echo "Grafana   : http://localhost:3000  (admin/admin)"
+	@echo "Grafana   : http://localhost:3001  (admin/admin)"
 	@echo "Prometheus: http://localhost:9090"
 	@echo "Kibana    : http://localhost:5601"
 	@echo "Vault     : http://localhost:8200  (token: root-dev-token)"

@@ -200,7 +200,7 @@ services:
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks: [provisioning-net]
     logging: *default-logging
 
@@ -295,7 +295,6 @@ services:
     volumes:
       - vault-data:/vault/file
       - vault-logs:/vault/logs
-      - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
       - ./vault/policies:/vault/policies:ro
     ports:
       - "8200:8200"
