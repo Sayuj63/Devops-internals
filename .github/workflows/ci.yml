@@ -101,7 +101,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}
           tags: |
-            type=sha,prefix=sha-,format=short
+            type=sha,prefix=sha-,format=long
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
