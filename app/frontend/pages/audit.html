@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SIMOPS · Audit log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: {
+    colors: { ink: { 950: '#0B0F19', 900: '#0F1421', 800: '#111827', 700: '#1F2937' }, accent: { cyan: '#22D3EE', amber: '#F59E0B', emerald: '#10B981', rose: '#EF4444', violet: '#8B5CF6' } },
+    fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] }
+  }}};
+</script>
+<link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body class="bg-ink-950 text-slate-200 font-sans antialiased min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-14 shrink-0 border-r border-ink-700 bg-ink-900/60 flex flex-col items-center py-3 gap-1 sticky top-0 h-screen">
+      <div class="w-9 h-9 rounded-md bg-gradient-to-br from-accent-cyan/80 to-accent-violet/70 grid place-items-center mb-2 shadow-[0_0_20px_-6px_rgba(34,211,238,0.6)]">
+        <span class="font-mono font-bold text-ink-950 text-[11px]">SO</span>
+      </div>
+      <nav class="flex flex-col gap-1 mt-2">
+        <a href="../index.html" class="rail-link" title="Overview" data-icon="chart-bar"></a>
+        <a href="./sims.html" class="rail-link" title="SIMs" data-icon="server"></a>
+        <a href="#" class="rail-link" title="Plans" data-icon="signal"></a>
+        <a href="./audit.html" class="rail-link is-active" title="Audit" data-icon="list-bullet"></a>
+        <a href="./health.html" class="rail-link" title="Health" data-icon="lock-closed"></a>
+      </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-ink-700 bg-ink-900/80 backdrop-blur flex items-center px-4 gap-3 sticky top-0 z-30">
+        <span class="font-semibold tracking-tight text-slate-100">SIMOPS</span>
+        <span class="text-slate-600">/</span>
+        <span class="text-slate-400 text-sm">Audit log</span>
+        <span id="env-badge" class="ml-2 px-2 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wider border border-accent-amber/40 text-accent-amber bg-accent-amber/10">mock</span>
+        <div class="flex-1"></div>
+        <span class="text-[11px] font-mono text-slate-500">infinite scroll · oldest at bottom</span>
+      </header>
+
+      <main class="flex-1 p-4">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">State transitions</h2>
+            <span id="count" class="text-[10px] font-mono text-slate-500">0 events</span>
+          </div>
+          <div id="audit-scroll" class="max-h-[calc(100vh-180px)] overflow-y-auto">
+            <table class="op-table" id="audit-table">
+              <thead><tr><th>Timestamp</th><th>ICCID</th><th>From</th><th>To</th><th>Actor</th><th>Reason</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <div id="sentinel" class="text-center py-4 text-[11px] font-mono text-slate-500">Loading…</div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../assets/icons.js"></script>
+  <script src="../assets/mock-api.js"></script>
+  <script src="../assets/app.js"></script>
+  <script>
+  (function () {
+    let loaded = 0;
+    const page = 50;
+    let allEvents = [];
+
+    async function loadMore() {
+      const r = await api('/api/v1/audit?limit=500');
+      allEvents = r.events;
+      append();
+    }
+
+    function append() {
+      const tbody = document.querySelector('#audit-table tbody');
+      const slice = allEvents.slice(loaded, loaded + page);
+      const html = slice.map(e => {
+        const d = new Date(e.ts);
+        const ts = d.toISOString().replace('T', ' ').slice(0, 19);
+        return `<tr>
+          <td class="text-slate-400">${ts}</td>
+          <td>${fmt.iccid(e.iccid)}</td>
+          <td>${pill(e.from)}</td>
+          <td>${pill(e.to)}</td>
+          <td class="text-slate-400">${e.actor}</td>
+          <td class="text-slate-500">${e.reason}</td>
+        </tr>`;
+      }).join('');
+      tbody.insertAdjacentHTML('beforeend', html);
+      loaded += slice.length;
+      document.getElementById('count').textContent = `${fmt.n(loaded)} of ${fmt.n(allEvents.length)} events`;
+      if (loaded >= allEvents.length) document.getElementById('sentinel').textContent = '— end of log —';
+    }
+
+    const scroller = document.getElementById('audit-scroll');
+    scroller.addEventListener('scroll', () => {
+      if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 80) {
+        if (loaded < allEvents.length) append();
+      }
+    });
+
+    loadMore();
+  })();
+  </script>
+</body>
+</html>

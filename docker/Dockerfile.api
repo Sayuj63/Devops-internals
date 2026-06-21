@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1.7
+ARG PYTHON_VERSION=3.11
+ARG DISTROLESS_IMAGE=gcr.io/distroless/python3-debian12:nonroot
+
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    VENV_PATH=/opt/venv
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential gcc libpq-dev curl \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv ${VENV_PATH}
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+
+WORKDIR /build
+COPY app/backend/pyproject.toml ./pyproject.toml
+RUN pip install --upgrade pip wheel setuptools \
+ && pip install "uvicorn[standard]==0.30.6" "gunicorn==22.0.0" \
+ && pip install .
+
+COPY app/backend/ /build/src/
+RUN pip install --no-deps /build/src
+
+FROM ${DISTROLESS_IMAGE} AS runtime
+
+ENV PATH="/opt/venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    APP_MODULE="app.main:app" \
+    APP_PORT=8000
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /build/src /app
+
+WORKDIR /app
+USER nonroot:nonroot
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["/opt/venv/bin/python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).status==200 else 1)"]
+
+ENTRYPOINT ["/opt/venv/bin/python", "-m", "uvicorn"]
+CMD ["app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--no-server-header"]

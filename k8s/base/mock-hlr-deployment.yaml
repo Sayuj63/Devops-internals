@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-hlr
+  namespace: sim-prov
+  labels:
+    app.kubernetes.io/name: sim-prov
+    app.kubernetes.io/component: mock-hlr
+    app.kubernetes.io/part-of: sim-prov-platform
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sim-prov
+      app.kubernetes.io/component: mock-hlr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sim-prov
+        app.kubernetes.io/component: mock-hlr
+        app.kubernetes.io/part-of: sim-prov-platform
+    spec:
+      serviceAccountName: sim-prov-mock-hlr
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: mock-hlr
+          image: sim-prov/mock-hlr:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9000
+          resources:
+            requests: { cpu: 50m,  memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: { sizeLimit: 32Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-hlr
+  namespace: sim-prov
+  labels:
+    app.kubernetes.io/name: sim-prov
+    app.kubernetes.io/component: mock-hlr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sim-prov
+    app.kubernetes.io/component: mock-hlr
+  ports:
+    - name: http
+      port: 9000
+      targetPort: http

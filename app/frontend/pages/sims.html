@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SIMOPS · Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: {
+    colors: { ink: { 950: '#0B0F19', 900: '#0F1421', 800: '#111827', 700: '#1F2937' }, accent: { cyan: '#22D3EE', amber: '#F59E0B', emerald: '#10B981', rose: '#EF4444', violet: '#8B5CF6' } },
+    fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] }
+  }}};
+</script>
+<link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body class="bg-ink-950 text-slate-200 font-sans antialiased min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-14 shrink-0 border-r border-ink-700 bg-ink-900/60 flex flex-col items-center py-3 gap-1 sticky top-0 h-screen">
+      <div class="w-9 h-9 rounded-md bg-gradient-to-br from-accent-cyan/80 to-accent-violet/70 grid place-items-center mb-2 shadow-[0_0_20px_-6px_rgba(34,211,238,0.6)]">
+        <span class="font-mono font-bold text-ink-950 text-[11px]">SO</span>
+      </div>
+      <nav class="flex flex-col gap-1 mt-2">
+        <a href="../index.html" class="rail-link" title="Overview" data-icon="chart-bar"></a>
+        <a href="./sims.html" class="rail-link is-active" title="SIMs" data-icon="server"></a>
+        <a href="#" class="rail-link" title="Plans" data-icon="signal"></a>
+        <a href="./audit.html" class="rail-link" title="Audit" data-icon="list-bullet"></a>
+        <a href="./health.html" class="rail-link" title="Health" data-icon="lock-closed"></a>
+      </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-ink-700 bg-ink-900/80 backdrop-blur flex items-center px-4 gap-3 sticky top-0 z-30">
+        <span class="font-semibold tracking-tight text-slate-100">SIMOPS</span>
+        <span class="text-slate-600">/</span>
+        <span class="text-slate-400 text-sm">Inventory</span>
+        <span id="env-badge" class="ml-2 px-2 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wider border border-accent-amber/40 text-accent-amber bg-accent-amber/10">mock</span>
+        <div class="flex-1"></div>
+        <button id="theme-toggle" class="btn-ghost" title="Toggle theme">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </header>
+
+      <main class="flex-1 p-4 space-y-3">
+        <section class="panel">
+          <div class="px-4 py-3 flex flex-wrap items-center gap-3 border-b border-ink-700">
+            <div class="relative w-72">
+              <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" data-icon="search"></span>
+              <input id="search" placeholder="Search ICCID or MSISDN…" class="search-input" />
+            </div>
+            <div id="status-chips" class="flex flex-wrap gap-1.5"></div>
+            <div class="flex-1"></div>
+            <div class="text-[11px] font-mono text-slate-500" id="result-count">—</div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="op-table" id="sims-table">
+              <thead><tr>
+                <th>ICCID</th><th>IMSI</th><th>MSISDN</th><th>Plan</th><th>Status</th><th>Activated</th><th class="text-right">Actions</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="px-4 py-3 flex items-center justify-between border-t border-ink-700 text-[11px] font-mono text-slate-500">
+            <div id="page-info">—</div>
+            <div class="flex gap-1.5">
+              <button id="prev" class="btn-ghost">← Prev</button>
+              <button id="next" class="btn-ghost">Next →</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="modal-host"></div>
+
+  <script src="../assets/icons.js"></script>
+  <script src="../assets/mock-api.js"></script>
+  <script src="../assets/app.js"></script>
+  <script>
+  (function () {
+    const STATUSES = ['ALL','PENDING','ALLOCATED','ACTIVE','SUSPENDED','PORTED','RECYCLED'];
+    let state = { status: 'ALL', q: '', offset: 0, limit: 25, total: 0 };
+
+    function actionsFor(sim) {
+      const map = {
+        PENDING: [['allocate', 'Allocate']],
+        ALLOCATED: [['activate', 'Activate'], ['recycle', 'Recycle']],
+        ACTIVE: [['suspend', 'Suspend'], ['port', 'Port out']],
+        SUSPENDED: [['resume', 'Resume']],
+        PORTED: [], RECYCLED: []
+      };
+      const acts = map[sim.status] || [];
+      if (!acts.length) return '<span class="text-slate-600 text-[11px]">—</span>';
+      return acts.map(([a, label]) =>
+        `<button class="btn-ghost text-[10px]" data-act="${a}" data-iccid="${sim.iccid}">${label}</button>`
+      ).join(' ');
+    }
+
+    async function load() {
+      const qs = new URLSearchParams({ limit: state.limit, offset: state.offset });
+      if (state.status !== 'ALL') qs.set('status', state.status);
+      if (state.q) qs.set('q', state.q);
+      const r = await api('/api/v1/sims?' + qs.toString());
+      state.total = r.total;
+      const tbody = document.querySelector('#sims-table tbody');
+      tbody.innerHTML = r.items.map(s => `<tr>
+        <td>${fmt.iccid(s.iccid)}</td>
+        <td class="text-slate-400">${s.imsi}</td>
+        <td>${fmt.msisdn(s.msisdn)}</td>
+        <td>${s.plan_id}</td>
+        <td>${pill(s.status)}</td>
+        <td class="text-slate-500">${fmt.timeAgo(s.activated_at)}</td>
+        <td class="text-right">${actionsFor(s)}</td>
+      </tr>`).join('');
+      document.getElementById('result-count').textContent = fmt.n(r.total) + ' results';
+      const from = state.total ? state.offset + 1 : 0;
+      const to = Math.min(state.offset + state.limit, state.total);
+      document.getElementById('page-info').textContent = `${from}–${to} of ${fmt.n(state.total)}`;
+      bindActions();
+    }
+
+    function renderChips(byStatus) {
+      const host = document.getElementById('status-chips');
+      host.innerHTML = STATUSES.map(s => {
+        const count = s === 'ALL' ? Object.values(byStatus).reduce((a,b)=>a+b,0) : (byStatus[s] || 0);
+        return `<button class="chip ${state.status === s ? 'is-on' : ''}" data-status="${s}">
+          ${s === 'ALL' ? 'All' : `<span style="color:${STATUS_COLORS[s]}">●</span> ${s}`}
+          <span class="chip-count">${fmt.n(count)}</span>
+        </button>`;
+      }).join('');
+      host.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+        state.status = b.dataset.status; state.offset = 0;
+        renderChips(byStatus);
+        load();
+      }));
+    }
+
+    function bindActions() {
+      document.querySelectorAll('button[data-act]').forEach(b => {
+        b.addEventListener('click', () => openConfirm(b.dataset.iccid, b.dataset.act));
+      });
+    }
+
+    function openConfirm(iccid, action) {
+      const host = document.getElementById('modal-host');
+      host.innerHTML = `<div class="modal-backdrop">
+        <div class="modal">
+          <div class="px-5 py-4 border-b border-ink-700 flex items-center gap-2">
+            <span class="text-accent-amber" data-icon="exclamation-triangle"></span>
+            <h3 class="font-semibold text-slate-100 text-sm">Confirm ${action}</h3>
+          </div>
+          <div class="p-5 text-sm text-slate-300 space-y-2">
+            <p>This will <span class="text-slate-100 font-semibold">${action}</span> SIM</p>
+            <p class="font-mono text-[12px] text-accent-cyan">${fmt.iccid(iccid)}</p>
+            <p class="text-[11px] text-slate-500">Audit event will be recorded. Action is reversible only for suspend↔resume.</p>
+          </div>
+          <div class="px-5 py-3 border-t border-ink-700 flex justify-end gap-2">
+            <button id="m-cancel" class="btn-ghost">Cancel</button>
+            <button id="m-ok" class="btn-primary">Confirm ${action}</button>
+          </div>
+        </div>
+      </div>`;
+      document.querySelectorAll('[data-icon]').forEach(el => {
+        if (!el.firstElementChild) el.insertAdjacentHTML('afterbegin', window.Icons.svg(el.getAttribute('data-icon')));
+      });
+      const close = () => host.innerHTML = '';
+      document.getElementById('m-cancel').onclick = close;
+      host.querySelector('.modal-backdrop').addEventListener('click', e => { if (e.target.classList.contains('modal-backdrop')) close(); });
+      document.getElementById('m-ok').onclick = async () => {
+        try {
+          await fetch(window.API_BASE + `/api/v1/sims/${iccid}/${action}`, { method: 'POST' });
+          close();
+          await refreshAll();
+        } catch (e) { console.error(e); close(); }
+      };
+    }
+
+    async function refreshAll() {
+      const stats = await api('/api/v1/stats');
+      renderChips(stats.by_status);
+      await load();
+    }
+
+    document.getElementById('search').addEventListener('input', e => {
+      state.q = e.target.value.trim();
+      state.offset = 0;
+      load();
+    });
+    document.getElementById('prev').addEventListener('click', () => {
+      state.offset = Math.max(0, state.offset - state.limit); load();
+    });
+    document.getElementById('next').addEventListener('click', () => {
+      if (state.offset + state.limit < state.total) { state.offset += state.limit; load(); }
+    });
+
+    refreshAll();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: https://hooks.slack.com/services/REPLACE/REPLACE/REPLACE
+
+route:
+  receiver: slack-default
+  group_by: [alertname, service, severity]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: ['severity="critical"']
+      receiver: slack-oncall
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true
+    - matchers: ['severity="warning"']
+      receiver: slack-default
+      repeat_interval: 6h
+    - matchers: ['severity="info"']
+      receiver: slack-default
+      repeat_interval: 24h
+
+inhibit_rules:
+  - source_matchers: ['severity="critical"']
+    target_matchers: ['severity="warning"']
+    equal: [alertname, service]
+
+receivers:
+  - name: slack-default
+    slack_configs:
+      - channel: "#sim-prov-alerts"
+        send_resolved: true
+        username: alertmanager
+        title: '{{ template "slack.title" . }}'
+        text:  '{{ template "slack.text"  . }}'
+
+  - name: slack-oncall
+    slack_configs:
+      - channel: "#sim-prov-oncall"
+        send_resolved: true
+        username: alertmanager
+        title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Severity:* `{{ .Labels.severity }}`  *Service:* `{{ .Labels.service }}`
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Runbook:* {{ .Annotations.runbook_url }}
+          {{ end }}
+
+templates:
+  - /etc/alertmanager/templates/*.tmpl

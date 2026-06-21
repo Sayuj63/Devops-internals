@@ -1,0 +1,22 @@
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: 5601
+server.publicBaseUrl: "http://localhost:5601"
+
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+monitoring.ui.container.elasticsearch.enabled: true
+
+xpack.encryptedSavedObjects.encryptionKey: "min32chars-min32chars-min32chars1"
+xpack.reporting.encryptionKey:              "min32chars-min32chars-min32chars2"
+xpack.security.encryptionKey:               "min32chars-min32chars-min32chars3"
+
+telemetry.enabled: false
+newsfeed.enabled: false
+
+logging:
+  appenders:
+    json: { type: console, layout: { type: json } }
+  root:
+    appenders: [json]
+    level: info

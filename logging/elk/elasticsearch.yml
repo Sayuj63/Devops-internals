@@ -1,0 +1,24 @@
+cluster.name: sim-prov-logs
+node.name: es01
+
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+discovery.type: single-node
+
+bootstrap.memory_lock: true
+
+xpack.security.enabled: false
+xpack.security.transport.ssl.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.monitoring.collection.enabled: true
+
+# Index lifecycle: keep 14 days hot, then delete (logs are non-authoritative).
+indices.lifecycle.poll_interval: 10m
+
+# Disk-based shard allocation thresholds for a single-node dev cluster.
+cluster.routing.allocation.disk.threshold_enabled: true
+cluster.routing.allocation.disk.watermark.low: 85%
+cluster.routing.allocation.disk.watermark.high: 90%
+cluster.routing.allocation.disk.watermark.flood_stage: 95%

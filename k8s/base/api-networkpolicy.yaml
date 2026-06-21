@@ -1,0 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api
+  namespace: sim-prov
+  labels:
+    app.kubernetes.io/name: sim-prov
+    app.kubernetes.io/component: api
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sim-prov
+      app.kubernetes.io/component: api
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sim-prov
+              app.kubernetes.io/component: frontend
+      ports:
+        - { port: 8000, protocol: TCP }
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { port: 53, protocol: UDP }
+        - { port: 53, protocol: TCP }
+    # PostgreSQL (RDS in private subnets, in-cluster CIDR varies — leave open to all non-cluster CIDRs but only on 5432)
+    - to:
+        - ipBlock:
+            cidr: 10.40.0.0/16
+      ports:
+        - { port: 5432, protocol: TCP }
+    # Vault
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vault
+      ports:
+        - { port: 8200, protocol: TCP }
+    # Mock HLR (in-namespace)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sim-prov
+              app.kubernetes.io/component: mock-hlr
+      ports:
+        - { port: 9000, protocol: TCP }

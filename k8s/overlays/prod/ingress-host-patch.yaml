@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sim-prov
+spec:
+  rules:
+    - host: sim-prov.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service: { name: api,      port: { number: 80 } }
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: frontend, port: { number: 80 } }
+  tls:
+    - hosts: [sim-prov.example.com]
+      secretName: sim-prov-tls

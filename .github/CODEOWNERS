@@ -1,0 +1,18 @@
+# Default owner — everything not matched below
+*                       @sayuj63
+
+# Infrastructure as code requires platform review
+/terraform/             @sayuj63 @platform-eng
+/terraform/modules/     @sayuj63 @platform-eng
+/k8s/base/              @sayuj63 @platform-eng
+
+# CI/CD changes
+/.github/workflows/     @sayuj63 @platform-eng
+/jenkins/               @sayuj63 @platform-eng
+
+# Observability
+/monitoring/            @sayuj63 @sre
+/logging/               @sayuj63 @sre
+
+# Secrets management — security review required
+/vault/                 @sayuj63 @security

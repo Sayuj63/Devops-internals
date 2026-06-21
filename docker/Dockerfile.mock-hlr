@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1.7
+ARG PYTHON_VERSION=3.11
+
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    VENV_PATH=/opt/venv
+
+RUN python -m venv ${VENV_PATH}
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+
+RUN pip install --upgrade pip \
+ && pip install "fastapi==0.115.0" "uvicorn[standard]==0.30.6" "pydantic==2.9.2"
+
+FROM python:${PYTHON_VERSION}-slim AS runtime
+
+ENV PATH="/opt/venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HLR_PORT=9000
+
+RUN groupadd --system --gid 1001 hlr \
+ && useradd  --system --uid 1001 --gid hlr --home-dir /app --shell /sbin/nologin hlr \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/venv /opt/venv
+COPY app/backend/mock_hlr/ /app/mock_hlr/
+
+WORKDIR /app
+USER hlr
+
+EXPOSE 9000
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD curl --fail --silent http://127.0.0.1:9000/healthz || exit 1
+
+ENTRYPOINT ["uvicorn"]
+CMD ["mock_hlr.main:app", "--host", "0.0.0.0", "--port", "9000"]

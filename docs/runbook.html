@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SIM-OPS · Operator runbook</title>
+<meta name="description" content="Runbook for the eight production alerts: PromQL diagnostics, remediation, escalation."/>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head>
+<body>
+
+<header class="nav" role="banner">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-mark">S</span>SIM-OPS <span class="brand-slash">/</span> ITM</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Overview</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="dr-plan.html">DR</a>
+      <a href="runbook.html" class="active">Runbook</a>
+      <button class="theme-toggle" aria-label="Toggle colour theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="sub-hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Runbook</span>
+    <h1>Eight alerts. Eight playbooks.</h1>
+    <p>The on-call rotation gets paged for exactly these alerts. Each entry lists what it means, the diagnostic queries you run first, and the safe remediation step. Anything outside this list is a Sev-3 ticket, not a page.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap reveal">
+
+    <div class="alert">
+      <div class="alert-head"><span class="sev">Critical</span><span class="name">APIHighErrorRate</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>5xx rate on <span class="chip">/api/v1/sims/*</span> above 2% for 5 minutes. Customer-visible.</dd>
+        <dt>Diagnose</dt><dd><code>sum(rate(http_requests_total{job="api",status=~"5.."}[5m])) / sum(rate(http_requests_total{job="api"}[5m]))</code></dd>
+        <dt>Kibana</dt><dd><code>kubernetes.labels.app:"api" AND status:[500 TO 599]</code> — group by <code>trace_id</code>.</dd>
+        <dt>Remediate</dt><dd>If a single trace dominates, identify the downstream failure (Vault, RDS, HLR). If broad, roll back to previous tag: <code>kustomize edit set image api=ghcr.io/itm-sayuj/sim-ops/api:&lt;prev&gt; &amp;&amp; kubectl apply -k k8s/overlays/prod</code>.</dd>
+      </dl>
+    </div>
+
+    <div class="alert">
+      <div class="alert-head"><span class="sev">Critical</span><span class="name">SLOFastBurn</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>14.4× burn rate over a 1-hour window. At this pace the monthly error budget is exhausted in two days.</dd>
+        <dt>Diagnose</dt><dd>Open the SLO board in Grafana — check whether the burn is from latency, errors, or both.</dd>
+        <dt>Remediate</dt><dd>Freeze deploys via <code>scripts/freeze.sh</code> until burn rate &lt; 1.0 for 30 min. Investigate top-N endpoints by error contribution.</dd>
+      </dl>
+    </div>
+
+    <div class="alert warn">
+      <div class="alert-head"><span class="sev">High</span><span class="name">SimActivationStuck</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>Any SIM has stayed in <span class="chip">ALLOCATED</span> for &gt;10 minutes — worker is not draining the queue.</dd>
+        <dt>Diagnose</dt><dd><code>sim_state_age_seconds{state="ALLOCATED"} &gt; 600</code> · worker queue depth: <code>sim_worker_queue_depth</code></dd>
+        <dt>Remediate</dt><dd>If queue depth is climbing, scale worker: <code>kubectl scale deploy/worker --replicas=4 -n sim-ops</code>. Otherwise inspect the HLR sidecar — a stuck downstream usually blocks the state machine.</dd>
+      </dl>
+    </div>
+
+    <div class="alert warn">
+      <div class="alert-head"><span class="sev">High</span><span class="name">PostgresConnHigh</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>Postgres connection count above 80% of <span class="chip">max_connections</span>. Activation traffic will start failing soon.</dd>
+        <dt>Diagnose</dt><dd><code>pg_stat_database_numbackends / pg_settings_max_connections &gt; 0.8</code></dd>
+        <dt>Remediate</dt><dd>Check pgbouncer pool stats: <code>kubectl exec -it pgbouncer-0 -- psql -p 6432 pgbouncer -c "SHOW POOLS"</code>. If a pod is leaking connections, restart it; otherwise raise <span class="chip">max_connections</span> via parameter group and apply.</dd>
+      </dl>
+    </div>
+
+    <div class="alert warn">
+      <div class="alert-head"><span class="sev">High</span><span class="name">VaultLeaderLost</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>Vault has no active leader for &gt;60s. Pods will fail to renew DB credentials.</dd>
+        <dt>Diagnose</dt><dd><code>vault_core_active == 0</code> on all peers. Run <code>vault operator raft list-peers</code>.</dd>
+        <dt>Remediate</dt><dd>Follow DR-03 in <a href="dr-plan.html" style="color:var(--cyan)">dr-plan.html</a>. Quorum loss requires snapshot restore.</dd>
+      </dl>
+    </div>
+
+    <div class="alert warn">
+      <div class="alert-head"><span class="sev">High</span><span class="name">PodCrashLooping</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>A pod has restarted &gt;5 times in 15 minutes.</dd>
+        <dt>Diagnose</dt><dd><code>increase(kube_pod_container_status_restarts_total[15m]) &gt; 5</code></dd>
+        <dt>Remediate</dt><dd><code>kubectl describe pod &lt;name&gt; -n sim-ops</code> · <code>kubectl logs --previous &lt;name&gt;</code>. If config-related, fix and redeploy. If image-related, roll back.</dd>
+      </dl>
+    </div>
+
+    <div class="alert info">
+      <div class="alert-head"><span class="sev">Medium</span><span class="name">DiskPressureNode</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>An EKS node's ephemeral storage usage exceeds 85%. Kubelet will start evicting soon.</dd>
+        <dt>Diagnose</dt><dd><code>node_filesystem_avail_bytes / node_filesystem_size_bytes &lt; 0.15</code></dd>
+        <dt>Remediate</dt><dd>Identify largest containers via <code>kubectl top pods</code>. Likely a runaway log file — bounce the workload and confirm Filebeat is shipping.</dd>
+      </dl>
+    </div>
+
+    <div class="alert info">
+      <div class="alert-head"><span class="sev">Low</span><span class="name">CertExpiry30d</span></div>
+      <dl>
+        <dt>Meaning</dt><dd>Any managed certificate is within 30 days of expiry.</dd>
+        <dt>Diagnose</dt><dd><code>(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 &lt; 30</code></dd>
+        <dt>Remediate</dt><dd>cert-manager renews automatically. If renewal failed, force it: <code>kubectl annotate certificate sim-ops-tls cert-manager.io/force-renew=true</code>. Confirm new secret reaches the ingress with <code>openssl s_client -connect sim-ops.itm.edu:443 -servername sim-ops.itm.edu</code>.</dd>
+      </dl>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-bottom" style="margin-top:0;border-top:none;padding-top:0">
+      <span>© 2026 Sayuj · ITM Skills University</span>
+      <span><a href="index.html" style="color:var(--cyan)">← back to overview</a></span>
+    </div>
+  </div>
+</footer>
+</main>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

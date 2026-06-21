@@ -1,0 +1,303 @@
+name: sim-prov
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+    tag: "{{.Name}}"
+
+networks:
+  provisioning-net:
+    driver: bridge
+    name: provisioning-net
+
+volumes:
+  postgres-data:
+  grafana-data:
+  prometheus-data:
+  alertmanager-data:
+  elasticsearch-data:
+  vault-data:
+  vault-logs:
+
+services:
+  postgres:
+    image: postgres:15.7-alpine
+    container_name: sim-prov-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: simprov
+      POSTGRES_PASSWORD: simprov_dev_pw
+      POSTGRES_DB: simprov
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U simprov -d simprov"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  migrate:
+    image: sim-prov/api:dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: sim-prov-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://simprov:simprov_dev_pw@postgres:5432/simprov
+    entrypoint: ["/opt/venv/bin/alembic"]
+    command: ["upgrade", "head"]
+    restart: "no"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  api:
+    image: sim-prov/api:dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: sim-prov-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      mock-hlr:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+asyncpg://simprov:simprov_dev_pw@postgres:5432/simprov
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root-dev-token
+      HLR_BASE_URL: http://mock-hlr:9000
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+      ENV: dev
+    ports:
+      - "8000:8000"
+    labels:
+      co.elastic.logs/enabled: "true"
+      co.elastic.logs/json.keys_under_root: "true"
+      prometheus.scrape: "true"
+      prometheus.port: "8000"
+      prometheus.path: "/metrics"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  worker:
+    image: sim-prov/worker:dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: sim-prov-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      mock-hlr:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+asyncpg://simprov:simprov_dev_pw@postgres:5432/simprov
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root-dev-token
+      HLR_BASE_URL: http://mock-hlr:9000
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+      WORKER_TICK_SECONDS: "5"
+      WORKER_LIVENESS_FILE: /tmp/worker.alive
+    labels:
+      co.elastic.logs/enabled: "true"
+      co.elastic.logs/json.keys_under_root: "true"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  mock-hlr:
+    image: sim-prov/mock-hlr:dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mock-hlr
+    container_name: sim-prov-mock-hlr
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  frontend:
+    image: sim-prov/frontend:dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: sim-prov-frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "5173:8080"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: sim-prov-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+      - --web.enable-admin-api
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: sim-prov-alertmanager
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:10.4.5
+    container_name: sim-prov-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: sim-prov-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+      bootstrap.memory_lock: "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./logging/elk/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    container_name: sim-prov-logstash
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      LS_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - ./logging/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: sim-prov-kibana
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    volumes:
+      - ./logging/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    container_name: sim-prov-filebeat
+    restart: unless-stopped
+    user: root
+    depends_on:
+      logstash:
+        condition: service_started
+    command: ["-strict.perms=false", "-e"]
+    volumes:
+      - ./logging/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [provisioning-net]
+    logging: *default-logging
+
+  vault:
+    image: hashicorp/vault:1.17.6
+    container_name: sim-prov-vault
+    restart: unless-stopped
+    cap_add: [IPC_LOCK]
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root-dev-token
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://0.0.0.0:8200
+    command: ["server", "-dev"]
+    volumes:
+      - vault-data:/vault/file
+      - vault-logs:/vault/logs
+      - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
+      - ./vault/policies:/vault/policies:ro
+    ports:
+      - "8200:8200"
+    networks: [provisioning-net]
+    logging: *default-logging

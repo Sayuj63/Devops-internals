@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sim-prov-config
+  namespace: sim-prov
+  labels:
+    app.kubernetes.io/name: sim-prov
+    app.kubernetes.io/component: config
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  VAULT_ADDR: "http://vault.vault.svc.cluster.local:8200"
+  HLR_BASE_URL: "http://mock-hlr.sim-prov.svc.cluster.local:9000"
+  DB_HOST: "sim-prov-pg.cluster-ro.ap-south-1.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "simprov"
+  PROMETHEUS_METRICS_PATH: "/metrics"
+  WORKER_CONCURRENCY: "8"
+  ACTIVATION_TIMEOUT_SECONDS: "30"

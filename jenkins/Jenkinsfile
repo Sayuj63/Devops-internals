@@ -1,0 +1,208 @@
+// SIM Provisioning Automation Platform — Jenkins CI/CD pipeline
+pipeline {
+    agent { label 'docker' }
+
+    options {
+        timeout(time: 60, unit: 'MINUTES')
+        timestamps()
+        ansiColor('xterm')
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10'))
+        disableConcurrentBuilds(abortPrevious: true)
+    }
+
+    environment {
+        REGISTRY              = 'ghcr.io/itm-skills/sim-prov'
+        IMAGE_TAG             = "${env.GIT_COMMIT?.take(12) ?: env.BUILD_NUMBER}"
+        DOCKER_BUILDKIT       = '1'
+        TRIVY_SEVERITY        = 'HIGH,CRITICAL'
+        KUSTOMIZE_VERSION     = '5.4.3'
+        DOCKER_CREDS          = credentials('docker-registry')
+        VAULT_TOKEN           = credentials('vault-token')
+        SLACK_WEBHOOK         = credentials('slack-webhook')
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_SHORT = sh(returnStdout: true, script: 'git rev-parse --short=12 HEAD').trim()
+                    currentBuild.description = "sha=${env.GIT_SHORT} branch=${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Quality gates') {
+            parallel {
+                stage('Lint :: ruff') {
+                    steps {
+                        sh '''
+                          docker run --rm -v "$PWD/app/backend":/src -w /src python:3.11-slim sh -c "
+                            pip install --quiet ruff==0.6.9 && ruff check ."
+                        '''
+                    }
+                }
+                stage('Lint :: hadolint') {
+                    steps {
+                        sh '''
+                          for f in docker/Dockerfile.*; do
+                            echo "::: $f"
+                            docker run --rm -i hadolint/hadolint:v2.12.0 hadolint --no-fail - < "$f"
+                          done
+                        '''
+                    }
+                }
+                stage('Unit tests') {
+                    steps {
+                        sh '''
+                          docker run --rm -v "$PWD":/w -w /w/app/backend python:3.11-slim sh -c "
+                            pip install --quiet . pytest==8.3.3 pytest-cov==5.0.0 &&
+                            pytest -q --cov=app --cov-report=xml:/w/coverage.xml --junitxml=/w/junit.xml"
+                        '''
+                    }
+                    post {
+                        always {
+                            junit allowEmptyResults: true, testResults: 'junit.xml'
+                            archiveArtifacts artifacts: 'coverage.xml', allowEmptyArchive: true
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build images') {
+            parallel {
+                stage('api')      { steps { buildImage('api',      'docker/Dockerfile.api') } }
+                stage('worker')   { steps { buildImage('worker',   'docker/Dockerfile.worker') } }
+                stage('mock-hlr') { steps { buildImage('mock-hlr', 'docker/Dockerfile.mock-hlr') } }
+                stage('frontend') { steps { buildImage('frontend', 'docker/Dockerfile.frontend') } }
+            }
+        }
+
+        stage('Security scan :: trivy') {
+            steps {
+                sh '''
+                  mkdir -p reports
+                  for svc in api worker mock-hlr frontend; do
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                      aquasec/trivy:0.55.2 image \
+                        --severity ${TRIVY_SEVERITY} \
+                        --exit-code 1 --ignore-unfixed --no-progress \
+                        --format table --output reports/${svc}.txt \
+                        ${REGISTRY}/${svc}:${IMAGE_TAG}
+                  done
+                '''
+            }
+            post {
+                always { archiveArtifacts artifacts: 'reports/*.txt', allowEmptyArchive: true }
+            }
+        }
+
+        stage('Push to registry') {
+            when { anyOf { branch 'main'; tag 'v*' } }
+            steps {
+                sh '''
+                  echo "$DOCKER_CREDS_PSW" | docker login ${REGISTRY%%/*} -u "$DOCKER_CREDS_USR" --password-stdin
+                  for svc in api worker mock-hlr frontend; do
+                    docker push ${REGISTRY}/${svc}:${IMAGE_TAG}
+                    docker tag  ${REGISTRY}/${svc}:${IMAGE_TAG} ${REGISTRY}/${svc}:latest
+                    docker push ${REGISTRY}/${svc}:latest
+                  done
+                '''
+            }
+        }
+
+        stage('Deploy :: staging') {
+            when { branch 'main' }
+            environment { KUBECONFIG = credentials('kubeconfig-staging') }
+            steps {
+                sh '''
+                  curl -sSL -o kustomize.tgz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz
+                  tar xzf kustomize.tgz && chmod +x kustomize
+                  ( cd k8s/overlays/staging && ../../../kustomize edit set image \
+                      sim-prov/api=${REGISTRY}/api:${IMAGE_TAG} \
+                      sim-prov/worker=${REGISTRY}/worker:${IMAGE_TAG} \
+                      sim-prov/mock-hlr=${REGISTRY}/mock-hlr:${IMAGE_TAG} \
+                      sim-prov/frontend=${REGISTRY}/frontend:${IMAGE_TAG} )
+                  ./kustomize build k8s/overlays/staging | kubectl apply -f -
+                  kubectl -n sim-prov rollout status deploy/api      --timeout=5m
+                  kubectl -n sim-prov rollout status deploy/worker   --timeout=5m
+                  kubectl -n sim-prov rollout status deploy/frontend --timeout=5m
+                '''
+            }
+        }
+
+        stage('Smoke test :: staging') {
+            when { branch 'main' }
+            steps {
+                sh 'STAGING_URL=https://staging.sim-prov.example.com ./scripts/smoke-test.sh'
+            }
+        }
+
+        stage('Approval :: production') {
+            when { branch 'main' }
+            steps {
+                timeout(time: 30, unit: 'MINUTES') {
+                    input message: "Promote ${IMAGE_TAG} to production?", ok: 'Ship it'
+                }
+            }
+        }
+
+        stage('Deploy :: production') {
+            when { branch 'main' }
+            environment { KUBECONFIG = credentials('kubeconfig-prod') }
+            steps {
+                sh '''
+                  ( cd k8s/overlays/prod && ../../../kustomize edit set image \
+                      sim-prov/api=${REGISTRY}/api:${IMAGE_TAG} \
+                      sim-prov/worker=${REGISTRY}/worker:${IMAGE_TAG} \
+                      sim-prov/mock-hlr=${REGISTRY}/mock-hlr:${IMAGE_TAG} \
+                      sim-prov/frontend=${REGISTRY}/frontend:${IMAGE_TAG} )
+                  ./kustomize build k8s/overlays/prod | kubectl apply -f -
+                  kubectl -n sim-prov rollout status deploy/api      --timeout=10m
+                  kubectl -n sim-prov rollout status deploy/worker   --timeout=10m
+                  kubectl -n sim-prov rollout status deploy/frontend --timeout=10m
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout ${REGISTRY%%/*} || true'
+            cleanWs(deleteDirs: true, notFailBuild: true)
+        }
+        success {
+            notifySlack('good', ":white_check_mark: ${env.JOB_NAME} #${env.BUILD_NUMBER} (${IMAGE_TAG}) succeeded")
+        }
+        failure {
+            notifySlack('danger', ":x: ${env.JOB_NAME} #${env.BUILD_NUMBER} (${IMAGE_TAG}) failed — ${env.BUILD_URL}")
+        }
+        unstable {
+            notifySlack('warning', ":warning: ${env.JOB_NAME} #${env.BUILD_NUMBER} unstable")
+        }
+    }
+}
+
+void buildImage(String name, String dockerfile) {
+    sh """
+      docker build \
+        --pull \
+        --build-arg BUILDKIT_INLINE_CACHE=1 \
+        --label org.opencontainers.image.revision=${env.GIT_COMMIT} \
+        --label org.opencontainers.image.source=${env.GIT_URL ?: 'https://github.com/itm-skills/sim-prov'} \
+        --label org.opencontainers.image.created=\$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+        -f ${dockerfile} \
+        -t ${REGISTRY}/${name}:${IMAGE_TAG} .
+    """
+}
+
+void notifySlack(String color, String message) {
+    if (!env.SLACK_WEBHOOK) { return }
+    sh """
+      curl -sS -X POST -H 'Content-Type: application/json' \
+        --data '{"attachments":[{"color":"${color}","text":"${message}"}]}' \
+        ${SLACK_WEBHOOK} || true
+    """
+}

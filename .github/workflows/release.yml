@@ -1,0 +1,59 @@
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  packages: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  release:
+    name: github-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image digests
+        id: digests
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          {
+            echo "## Container images"
+            echo
+            echo "| Service | Image | Digest |"
+            echo "| ------- | ----- | ------ |"
+            for svc in api worker mock-hlr frontend; do
+              REF="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${svc}:${TAG}"
+              DIGEST=$(docker buildx imagetools inspect "$REF" --format '{{json .Manifest}}' | jq -r .digest)
+              echo "| \`${svc}\` | \`${REF}\` | \`${DIGEST}\` |"
+            done
+          } > release-notes.md
+          echo
+          echo "## Changelog"                  >> release-notes.md
+          git log --pretty=format:'- %s (%h)' \
+            $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null)..HEAD >> release-notes.md || true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') }}
+          generate_release_notes: false

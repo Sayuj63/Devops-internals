@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SIMOPS · Operator Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          ink: { 950: '#0B0F19', 900: '#0F1421', 800: '#111827', 700: '#1F2937', 600: '#374151' },
+          accent: { cyan: '#22D3EE', amber: '#F59E0B', emerald: '#10B981', rose: '#EF4444', violet: '#8B5CF6' }
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+<link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body class="bg-ink-950 text-slate-200 font-sans antialiased min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-14 shrink-0 border-r border-ink-700 bg-ink-900/60 flex flex-col items-center py-3 gap-1 sticky top-0 h-screen">
+      <div class="w-9 h-9 rounded-md bg-gradient-to-br from-accent-cyan/80 to-accent-violet/70 grid place-items-center mb-2 shadow-[0_0_20px_-6px_rgba(34,211,238,0.6)]">
+        <span class="font-mono font-bold text-ink-950 text-[11px]">SO</span>
+      </div>
+      <nav class="flex flex-col gap-1 mt-2" id="rail-nav">
+        <a data-page="overview" href="./index.html" class="rail-link is-active" title="Overview" data-icon="chart-bar"></a>
+        <a data-page="sims" href="./pages/sims.html" class="rail-link" title="SIMs" data-icon="server"></a>
+        <a data-page="plans" href="#plans" class="rail-link" title="Plans" data-icon="signal"></a>
+        <a data-page="audit" href="./pages/audit.html" class="rail-link" title="Audit" data-icon="list-bullet"></a>
+        <a data-page="health" href="./pages/health.html" class="rail-link" title="Health" data-icon="lock-closed"></a>
+      </nav>
+      <div class="mt-auto flex flex-col gap-2 items-center">
+        <span class="status-dot status-dot--ok" title="API reachable"></span>
+        <span class="text-[9px] font-mono text-slate-500">v0.1</span>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-ink-700 bg-ink-900/80 backdrop-blur flex items-center px-4 gap-3 sticky top-0 z-30">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold tracking-tight text-slate-100">SIMOPS</span>
+          <span class="text-slate-600">/</span>
+          <span class="text-slate-400 text-sm" id="crumb">Overview</span>
+        </div>
+        <span id="env-badge" class="ml-2 px-2 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wider border border-accent-amber/40 text-accent-amber bg-accent-amber/10">mock</span>
+        <div class="flex-1"></div>
+        <div class="hidden md:flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+          <span id="now-clock" class="tabnum">--:--:--</span>
+          <span class="text-slate-700">·</span>
+          <span>IST</span>
+        </div>
+        <button id="refresh-btn" class="btn-ghost" title="Refresh (R)">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 10A8 8 0 0 0 6.3 6.3L4 8.5M4 14a8 8 0 0 0 13.7 3.7L20 15.5"/></svg>
+        </button>
+        <button id="theme-toggle" class="btn-ghost" title="Toggle theme">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </header>
+
+      <main class="flex-1 p-4 grid grid-cols-12 gap-3">
+        <section class="col-span-12 grid grid-cols-2 md:grid-cols-4 gap-3" id="kpi-row"></section>
+
+        <section class="col-span-12 lg:col-span-8 panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Activations · last 24h</h2>
+              <p class="panel-sub">Hourly buckets · UTC</p>
+            </div>
+            <div class="flex items-center gap-1.5 text-[10px] font-mono">
+              <span class="legend-swatch bg-accent-cyan/80"></span><span class="text-slate-400">activated</span>
+              <span class="legend-swatch bg-accent-amber/70 ml-2"></span><span class="text-slate-400">suspended</span>
+            </div>
+          </div>
+          <div id="sparkline-host" class="px-4 pb-4"></div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-4 panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Inventory by status</h2>
+            <span class="text-[10px] font-mono text-slate-500" id="donut-total">—</span>
+          </div>
+          <div id="donut-host" class="px-4 pb-4 flex items-center gap-4"></div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-7 panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Recent SIMs</h2>
+              <p class="panel-sub">Latest 12 records</p>
+            </div>
+            <a href="./pages/sims.html" class="text-[11px] font-mono text-accent-cyan hover:text-accent-cyan/80">view all →</a>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="op-table" id="recent-sims-table">
+              <thead><tr><th>ICCID</th><th>MSISDN</th><th>Plan</th><th>Status</th><th class="text-right">Activated</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-5 panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Live audit tail</h2>
+              <p class="panel-sub">Polling every 3s</p>
+            </div>
+            <span class="status-dot status-dot--ok"></span>
+          </div>
+          <ul id="audit-tail" class="audit-tail"></ul>
+        </section>
+
+        <section class="col-span-12 lg:col-span-6 panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Top plans</h2>
+            <span class="text-[10px] font-mono text-slate-500">by active SIMs</span>
+          </div>
+          <div id="top-plans" class="px-4 pb-4 space-y-2"></div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-6 panel">
+          <div class="panel-header">
+            <h2 class="panel-title">State machine</h2>
+            <span class="text-[10px] font-mono text-slate-500">PENDING → … → RECYCLED</span>
+          </div>
+          <div class="p-4">
+            <div id="state-machine" class="flex flex-wrap items-center gap-1.5 text-[10px] font-mono"></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="border-t border-ink-700 px-4 py-2 text-[10px] font-mono text-slate-500 flex justify-between">
+        <span>SIM Provisioning Automation Platform · Case Study 20</span>
+        <span>API: <span id="api-base">—</span></span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="./assets/icons.js"></script>
+  <script src="./assets/mock-api.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>

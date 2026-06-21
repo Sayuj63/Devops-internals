@@ -1,0 +1,130 @@
+groups:
+  - name: sim-prov.recording
+    interval: 30s
+    rules:
+      - record: sim:http_requests:rate5m
+        expr: sum by (service, route, code) (rate(http_requests_total{service=~"api|mock-hlr"}[5m]))
+
+      - record: sim:http_errors:ratio5m
+        expr: |
+          sum by (service) (rate(http_requests_total{service="api",code=~"5.."}[5m]))
+          /
+          clamp_min(sum by (service) (rate(http_requests_total{service="api"}[5m])), 1e-9)
+
+      - record: sim:activation_latency_seconds:p50
+        expr: histogram_quantile(0.50, sum by (le) (rate(sim_activation_duration_seconds_bucket[5m])))
+      - record: sim:activation_latency_seconds:p95
+        expr: histogram_quantile(0.95, sum by (le) (rate(sim_activation_duration_seconds_bucket[5m])))
+      - record: sim:activation_latency_seconds:p99
+        expr: histogram_quantile(0.99, sum by (le) (rate(sim_activation_duration_seconds_bucket[5m])))
+
+      - record: sim:msisdn_pool_remaining
+        expr: msisdn_pool_size - msisdn_pool_allocated
+
+      - record: sim:hlr_call_success_rate:5m
+        expr: |
+          sum(rate(hlr_calls_total{result="success"}[5m]))
+          /
+          clamp_min(sum(rate(hlr_calls_total[5m])), 1e-9)
+
+  - name: sim-prov.alerts
+    rules:
+      - alert: HighErrorRate
+        expr: sim:http_errors:ratio5m > 0.05
+        for: 10m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "API 5xx error ratio > 5% for 10m"
+          description: |
+            The API is returning HTTP 5xx for more than 5% of requests over the
+            last 10 minutes. Current ratio: {{ printf "%.2f" $value }}.
+          runbook_url: https://sim-prov.example.com/runbooks/high-error-rate
+
+      - alert: HighActivationLatency
+        expr: sim:activation_latency_seconds:p95 > 5
+        for: 15m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "SIM activation p95 latency > 5s"
+          description: |
+            p95 SIM activation latency is {{ printf "%.2f" $value }}s (target: <2s).
+            Likely culprits: HLR mock latency, DB pool saturation, MSISDN allocator.
+          runbook_url: https://sim-prov.example.com/runbooks/activation-latency
+
+      - alert: MsisdnPoolLow
+        expr: sim:msisdn_pool_remaining < 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "MSISDN pool below 1000 numbers"
+          description: |
+            Only {{ $value }} MSISDNs remain in the pool. Trigger the regional
+            number request workflow before activations start failing.
+          runbook_url: https://sim-prov.example.com/runbooks/msisdn-pool-low
+
+      - alert: MsisdnPoolExhausted
+        expr: sim:msisdn_pool_remaining < 100
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "MSISDN pool nearly exhausted (<100)"
+          description: "Activations will start failing imminently."
+          runbook_url: https://sim-prov.example.com/runbooks/msisdn-pool-low
+
+      - alert: DBDown
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "PostgreSQL unreachable"
+          description: |
+            postgres_exporter cannot reach the DB on instance {{ $labels.instance }}.
+            Check RDS console, security groups, and the EKS node IAM role.
+          runbook_url: https://sim-prov.example.com/runbooks/db-down
+
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="sim-prov"}[10m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} crash-looping"
+          description: |
+            Container {{ $labels.container }} in pod {{ $labels.pod }} is restarting
+            more than once per 10 minutes.
+          runbook_url: https://sim-prov.example.com/runbooks/pod-crashloop
+
+      - alert: CertExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "TLS certificate for {{ $labels.instance }} expires in <14 days"
+          description: |
+            cert-manager renewal appears stalled. Inspect the Certificate and Order
+            resources in the sim-prov namespace.
+          runbook_url: https://sim-prov.example.com/runbooks/cert-expiring
+
+      - alert: HlrCallFailureRateHigh
+        expr: sim:hlr_call_success_rate:5m < 0.95
+        for: 10m
+        labels:
+          severity: warning
+          service: mock-hlr
+        annotations:
+          summary: "HLR call success rate below 95%"
+          description: |
+            HLR success rate is {{ printf "%.2f" $value }}. Worker activations
+            depend on this — investigate the mock HLR sidecar and network policy.
+          runbook_url: https://sim-prov.example.com/runbooks/hlr-failures

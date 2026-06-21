@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" font-family="JetBrains Mono, monospace" font-size="12">
+  <defs>
+    <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F2937" stroke-width="1" opacity="0.4"/>
+    </pattern>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7280"/>
+    </marker>
+    <style>
+      .lbl { fill:#6B7280; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; }
+      .box { fill:#0B0F1A; stroke:#1F2937; stroke-width:1; }
+      .az { fill:#0B0F1A; stroke:#1F2937; stroke-width:1; stroke-dasharray:4 4; }
+      .ttl { fill:#E5E7EB; font-size:13px; }
+      .sub { fill:#9CA3AF; font-size:10px; }
+      .ln { stroke:#6B7280; stroke-width:1; fill:none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#05070D"/>
+  <rect width="1200" height="700" fill="url(#grid2)"/>
+
+  <text x="40" y="50" class="lbl">AWS Region · us-east-1</text>
+
+  <!-- Route53 -->
+  <rect x="500" y="70" width="200" height="50" rx="10" class="box" stroke="#22D3EE"/>
+  <text x="600" y="92" text-anchor="middle" class="ttl">Route 53 · DNS</text>
+  <text x="600" y="108" text-anchor="middle" class="sub">sim-ops.itm.edu · health checks</text>
+
+  <!-- ALB -->
+  <rect x="500" y="150" width="200" height="50" rx="10" class="box" stroke="#22D3EE"/>
+  <text x="600" y="172" text-anchor="middle" class="ttl">Application Load Balancer</text>
+  <text x="600" y="188" text-anchor="middle" class="sub">3-AZ · ACM TLS · WAF</text>
+
+  <line x1="600" y1="120" x2="600" y2="146" class="ln" marker-end="url(#arrow2)"/>
+  <line x1="600" y1="200" x2="600" y2="240" class="ln" marker-end="url(#arrow2)"/>
+
+  <!-- AZ containers -->
+  <g>
+    <rect x="60" y="240" width="360" height="320" rx="12" class="az"/>
+    <text x="80" y="262" class="lbl">AZ · us-east-1a</text>
+    <!-- EKS node + pods -->
+    <rect x="80" y="280" width="320" height="120" rx="8" class="box" stroke="#8B5CF6"/>
+    <text x="240" y="302" text-anchor="middle" class="ttl">EKS Node · m6i.large</text>
+    <text x="240" y="318" text-anchor="middle" class="sub">kubelet · containerd · CNI</text>
+    <rect x="100" y="334" width="84" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="142" y="356" text-anchor="middle" class="sub">api-7df9</text>
+    <text x="142" y="372" text-anchor="middle" class="sub">ready</text>
+    <rect x="200" y="334" width="84" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="242" y="356" text-anchor="middle" class="sub">worker-2a4</text>
+    <text x="242" y="372" text-anchor="middle" class="sub">ready</text>
+    <rect x="300" y="334" width="84" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="342" y="356" text-anchor="middle" class="sub">web-91bc</text>
+    <text x="342" y="372" text-anchor="middle" class="sub">ready</text>
+
+    <!-- RDS primary -->
+    <rect x="80" y="420" width="320" height="120" rx="8" class="box" stroke="#10B981"/>
+    <text x="240" y="442" text-anchor="middle" class="ttl">RDS Postgres · Primary</text>
+    <text x="240" y="460" text-anchor="middle" class="sub">db.r6g.large · gp3 · 100 GB</text>
+    <text x="240" y="486" text-anchor="middle" class="sub">PITR · automated backups</text>
+    <text x="240" y="506" text-anchor="middle" class="sub">encryption: KMS CMK</text>
+  </g>
+
+  <g>
+    <rect x="440" y="240" width="320" height="320" rx="12" class="az"/>
+    <text x="460" y="262" class="lbl">AZ · us-east-1b</text>
+    <rect x="460" y="280" width="280" height="120" rx="8" class="box" stroke="#8B5CF6"/>
+    <text x="600" y="302" text-anchor="middle" class="ttl">EKS Node · m6i.large</text>
+    <text x="600" y="318" text-anchor="middle" class="sub">kubelet · containerd · CNI</text>
+    <rect x="480" y="334" width="80" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="520" y="356" text-anchor="middle" class="sub">api-441f</text>
+    <text x="520" y="372" text-anchor="middle" class="sub">ready</text>
+    <rect x="570" y="334" width="80" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="610" y="356" text-anchor="middle" class="sub">vault-0</text>
+    <text x="610" y="372" text-anchor="middle" class="sub">leader</text>
+    <rect x="660" y="334" width="80" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="700" y="356" text-anchor="middle" class="sub">worker-9c</text>
+    <text x="700" y="372" text-anchor="middle" class="sub">ready</text>
+
+    <rect x="460" y="420" width="280" height="120" rx="8" class="box" stroke="#10B981"/>
+    <text x="600" y="442" text-anchor="middle" class="ttl">RDS Postgres · Standby (sync)</text>
+    <text x="600" y="460" text-anchor="middle" class="sub">multi-AZ failover ≤ 60s</text>
+    <text x="600" y="486" text-anchor="middle" class="sub">Vault Raft replica</text>
+  </g>
+
+  <g>
+    <rect x="780" y="240" width="360" height="320" rx="12" class="az"/>
+    <text x="800" y="262" class="lbl">AZ · us-east-1c</text>
+    <rect x="800" y="280" width="320" height="120" rx="8" class="box" stroke="#8B5CF6"/>
+    <text x="960" y="302" text-anchor="middle" class="ttl">EKS Node · m6i.large</text>
+    <text x="960" y="318" text-anchor="middle" class="sub">kubelet · containerd · CNI</text>
+    <rect x="820" y="334" width="90" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="865" y="356" text-anchor="middle" class="sub">api-cc11</text>
+    <text x="865" y="372" text-anchor="middle" class="sub">ready</text>
+    <rect x="920" y="334" width="90" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="965" y="356" text-anchor="middle" class="sub">prom-0</text>
+    <text x="965" y="372" text-anchor="middle" class="sub">scraping</text>
+    <rect x="1020" y="334" width="90" height="50" rx="4" fill="#10141F" stroke="#1F2937"/>
+    <text x="1065" y="356" text-anchor="middle" class="sub">grafana-0</text>
+    <text x="1065" y="372" text-anchor="middle" class="sub">ready</text>
+
+    <rect x="800" y="420" width="320" height="120" rx="8" class="box" stroke="#F59E0B"/>
+    <text x="960" y="442" text-anchor="middle" class="ttl">ELK + S3 Backups</text>
+    <text x="960" y="460" text-anchor="middle" class="sub">ES hot · Logstash · Kibana</text>
+    <text x="960" y="486" text-anchor="middle" class="sub">S3 cross-region replication</text>
+  </g>
+
+  <!-- ALB to AZs -->
+  <line x1="600" y1="200" x2="240" y2="276" class="ln" marker-end="url(#arrow2)"/>
+  <line x1="600" y1="200" x2="600" y2="276" class="ln" marker-end="url(#arrow2)"/>
+  <line x1="600" y1="200" x2="960" y2="276" class="ln" marker-end="url(#arrow2)"/>
+
+  <!-- DR region -->
+  <rect x="40" y="600" width="1120" height="70" rx="12" class="az"/>
+  <text x="60" y="622" class="lbl">DR Region · us-west-2 (pilot light)</text>
+  <text x="60" y="644" class="sub">Terraform-managed warm EKS · RDS cross-region read replica · Vault Raft snapshot restore · activated by playbook DR-02 (RTO 30 min)</text>
+</svg>

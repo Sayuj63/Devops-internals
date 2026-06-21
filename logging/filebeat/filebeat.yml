@@ -1,0 +1,37 @@
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      hints.default_config:
+        type: container
+        paths: ["/var/lib/docker/containers/${data.container.id}/*.log"]
+        json.keys_under_root: true
+        json.add_error_key: true
+        json.message_key: message
+
+processors:
+  - add_docker_metadata: ~
+  - add_host_metadata: ~
+  - drop_event:
+      when:
+        or:
+          - equals: { container.labels.co_elastic_logs/enabled: "false" }
+          - regexp:
+              container.image.name: "^docker\\.elastic\\.co/.*$"
+  - rename:
+      fields:
+        - { from: "container.name", to: "service" }
+      ignore_missing: true
+
+output.logstash:
+  hosts: ["logstash:5044"]
+  bulk_max_size: 2048
+  worker: 2
+  compression_level: 3
+
+logging.level: info
+logging.to_files: false
+logging.to_stderr: true
+logging.metrics.enabled: false
+
+monitoring.enabled: false

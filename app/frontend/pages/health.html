@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SIMOPS · Health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: {
+    colors: { ink: { 950: '#0B0F19', 900: '#0F1421', 800: '#111827', 700: '#1F2937' }, accent: { cyan: '#22D3EE', amber: '#F59E0B', emerald: '#10B981', rose: '#EF4444', violet: '#8B5CF6' } },
+    fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','ui-monospace','monospace'] }
+  }}};
+</script>
+<link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body class="bg-ink-950 text-slate-200 font-sans antialiased min-h-screen">
+  <div class="flex min-h-screen">
+    <aside class="w-14 shrink-0 border-r border-ink-700 bg-ink-900/60 flex flex-col items-center py-3 gap-1 sticky top-0 h-screen">
+      <div class="w-9 h-9 rounded-md bg-gradient-to-br from-accent-cyan/80 to-accent-violet/70 grid place-items-center mb-2 shadow-[0_0_20px_-6px_rgba(34,211,238,0.6)]">
+        <span class="font-mono font-bold text-ink-950 text-[11px]">SO</span>
+      </div>
+      <nav class="flex flex-col gap-1 mt-2">
+        <a href="../index.html" class="rail-link" title="Overview" data-icon="chart-bar"></a>
+        <a href="./sims.html" class="rail-link" title="SIMs" data-icon="server"></a>
+        <a href="#" class="rail-link" title="Plans" data-icon="signal"></a>
+        <a href="./audit.html" class="rail-link" title="Audit" data-icon="list-bullet"></a>
+        <a href="./health.html" class="rail-link is-active" title="Health" data-icon="lock-closed"></a>
+      </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-ink-700 bg-ink-900/80 backdrop-blur flex items-center px-4 gap-3 sticky top-0 z-30">
+        <span class="font-semibold tracking-tight text-slate-100">SIMOPS</span>
+        <span class="text-slate-600">/</span>
+        <span class="text-slate-400 text-sm">Health</span>
+        <span id="env-badge" class="ml-2 px-2 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wider border border-accent-amber/40 text-accent-amber bg-accent-amber/10">mock</span>
+        <div class="flex-1"></div>
+        <span class="text-[11px] font-mono text-slate-500" id="last-check">checking…</span>
+      </header>
+
+      <main class="flex-1 p-4 grid grid-cols-12 gap-3">
+        <section class="col-span-12 panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Cluster status</h2>
+            <span class="status-dot status-dot--ok"></span>
+          </div>
+          <div id="components" class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-6 panel">
+          <div class="panel-header"><h2 class="panel-title">SLOs</h2><span class="text-[10px] font-mono text-slate-500">rolling 28d</span></div>
+          <div class="p-4 space-y-3" id="slos"></div>
+        </section>
+
+        <section class="col-span-12 lg:col-span-6 panel">
+          <div class="panel-header"><h2 class="panel-title">Recent incidents</h2><span class="text-[10px] font-mono text-slate-500">7d window</span></div>
+          <ul class="p-2" id="incidents"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../assets/icons.js"></script>
+  <script src="../assets/mock-api.js"></script>
+  <script src="../assets/app.js"></script>
+  <script>
+  (function () {
+    const ICON = { 'API Gateway': 'cloud', 'PostgreSQL': 'database', 'HLR Adapter': 'signal', 'Vault': 'shield', 'Worker Queue': 'cpu', 'Prometheus': 'chart-bar' };
+    const STAT_CLS = { ok: 'status-dot--ok', warn: 'status-dot--warn', err: 'status-dot--err' };
+    const STAT_LABEL = { ok: 'Operational', warn: 'Degraded', err: 'Down' };
+
+    async function load() {
+      const r = await api('/api/v1/health/components');
+      const host = document.getElementById('components');
+      host.innerHTML = r.components.map(c => {
+        const bars = c.samples.map(s => `<span class="${s === 'ok' ? '' : s}" style="height:${s === 'ok' ? 18 : s === 'warn' ? 12 : 6}px"></span>`).join('');
+        const iconName = ICON[c.name] || 'server';
+        return `<div class="health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400">${window.Icons.svg(iconName, 'w-4 h-4')}</span>
+              <span class="text-sm font-semibold text-slate-100">${c.name}</span>
+            </div>
+            <span class="status-dot ${STAT_CLS[c.status]}"></span>
+          </div>
+          <div class="flex items-end justify-between mb-3">
+            <div>
+              <div class="text-[10px] font-mono uppercase text-slate-500 tracking-wider">latency</div>
+              <div class="text-xl font-semibold tabnum text-slate-100">${c.latency_ms}<span class="text-xs text-slate-500 ml-1">ms</span></div>
+            </div>
+            <div class="text-[11px] font-mono ${c.status === 'ok' ? 'text-accent-emerald' : c.status === 'warn' ? 'text-accent-amber' : 'text-accent-rose'}">${STAT_LABEL[c.status]}</div>
+          </div>
+          <div class="ping-bar">${bars}</div>
+          <div class="text-[9px] font-mono text-slate-600 mt-1 flex justify-between"><span>24h ago</span><span>now</span></div>
+        </div>`;
+      }).join('');
+      document.getElementById('last-check').textContent = 'checked ' + new Date().toLocaleTimeString();
+    }
+
+    function renderSLOs() {
+      const slos = [
+        { name: 'API availability', target: 99.9, actual: 99.94 },
+        { name: 'Activation latency p95 < 5s', target: 99, actual: 98.6 },
+        { name: 'Audit log durability', target: 100, actual: 100 },
+        { name: 'Worker queue lag p95 < 30s', target: 99, actual: 99.2 }
+      ];
+      document.getElementById('slos').innerHTML = slos.map(s => {
+        const ok = s.actual >= s.target;
+        const pct = Math.min(100, (s.actual / 100) * 100);
+        return `<div>
+          <div class="flex justify-between text-[11px] font-mono mb-1">
+            <span class="text-slate-300">${s.name}</span>
+            <span class="${ok ? 'text-accent-emerald' : 'text-accent-amber'}">${s.actual}% / ${s.target}%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background: ${ok ? 'linear-gradient(90deg,#10B981,#22D3EE)' : 'linear-gradient(90deg,#F59E0B,#EF4444)'}"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderIncidents() {
+      const incs = [
+        { sev: 'warn', t: '2h ago', title: 'HLR adapter latency spike', dur: '4m', actor: 'auto-resolved' },
+        { sev: 'ok',   t: '1d ago', title: 'Postpaid plan migration deploy', dur: '12m', actor: 'rohan@simops' },
+        { sev: 'err',  t: '3d ago', title: 'Vault token TTL expiry', dur: '23m', actor: 'kavya@simops' },
+        { sev: 'warn', t: '5d ago', title: 'Worker queue lag > 60s', dur: '7m', actor: 'auto-scaled' }
+      ];
+      const cls = { ok: 'text-accent-emerald', warn: 'text-accent-amber', err: 'text-accent-rose' };
+      document.getElementById('incidents').innerHTML = incs.map(i => `<li class="flex items-center gap-3 px-3 py-2.5 border-b border-ink-700/50 text-[11px] font-mono">
+        <span class="status-dot ${i.sev === 'ok' ? 'status-dot--ok' : i.sev === 'warn' ? 'status-dot--warn' : 'status-dot--err'}"></span>
+        <span class="text-slate-200 flex-1">${i.title}</span>
+        <span class="text-slate-500 w-12 text-right">${i.dur}</span>
+        <span class="text-slate-500 w-20 text-right">${i.t}</span>
+      </li>`).join('');
+    }
+
+    load();
+    renderSLOs();
+    renderIncidents();
+    setInterval(load, 5000);
+  })();
+  </script>
+</body>
+</html>

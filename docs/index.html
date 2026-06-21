@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SIM-OPS — Telecom-grade SIM provisioning, automated end-to-end</title>
+<meta name="description" content="A production-shaped SIM Provisioning Automation Platform. ITM Skills University · Case Study 20 · DevOps Sem IV. Built by Sayuj."/>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head>
+<body>
+
+<header class="nav" role="banner">
+  <div class="nav-inner">
+    <a class="brand" href="#top" aria-label="SIM-OPS home">
+      <span class="brand-mark">S</span>
+      SIM-OPS <span class="brand-slash">/</span> ITM
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#overview" data-section="overview">Overview</a>
+      <a href="#architecture" data-section="architecture">Architecture</a>
+      <a href="#pipeline" data-section="pipeline">Pipeline</a>
+      <a href="#operations" data-section="operations">Operations</a>
+      <a href="#dr" data-section="dr">DR</a>
+      <a href="#screens" data-section="screens">Screenshots</a>
+      <a href="#deliverables" data-section="deliverables">Deliverables</a>
+      <button class="theme-toggle" aria-label="Toggle colour theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero" id="overview" aria-labelledby="hero-h">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="wrap hero-inner">
+    <div>
+      <div class="terminal-pill">
+        <span class="badge">live</span>
+        <span>5,000 SIMs provisioned · 99.95% SLO</span>
+        <span class="status-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      </div>
+      <h1 id="hero-h">Telecom-grade SIM&nbsp;provisioning, automated <em>end-to-end</em>.</h1>
+      <p class="hero-sub">A production-shaped DevOps platform that takes a SIM from <span class="chip">PENDING</span> to <span class="chip">ACTIVE</span> through code-only delivery — Terraform, Kubernetes, Jenkins, Vault, Prometheus, and ELK, wired together with a real FastAPI service and an operator dashboard.</p>
+      <div class="cta-row">
+        <a class="cta primary" href="https://github.com/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.6.5.5 5.6.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2.1c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.1.7.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.6 18.4.5 12 .5z"/></svg>
+          View source repo
+        </a>
+        <a class="cta" href="#screens">
+          Dashboard preview
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a class="cta" href="dr-plan.html">
+          DR playbook
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+    <dl class="hero-meta">
+      <div><dt>Case study</dt><dd>No. 20 · DevOps Sem IV</dd></div>
+      <div><dt>Author</dt><dd>Sayuj · B.Tech CSE 2024-28</dd></div>
+      <div><dt>Institution</dt><dd>ITM Skills University</dd></div>
+      <div><dt>Pipeline status</dt><dd><span class="ok">passing</span> · 14/14 stages</dd></div>
+      <div><dt>Last build</dt><dd>2026-06-21 · 18:42 IST</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- METRICS STRIP -->
+<section class="metrics" aria-label="Headline metrics" style="padding:28px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="wrap metrics-row">
+    <div class="metric"><div class="metric-num"><span data-count="5000">0</span><span class="unit">SIMs</span></div><div class="metric-label">Provisioned in load test</div></div>
+    <div class="metric"><div class="metric-num"><span data-count="99.95" data-decimals="2">0</span><span class="unit">%</span></div><div class="metric-label">Availability SLO target</div></div>
+    <div class="metric"><div class="metric-num"><span data-count="27">0</span></div><div class="metric-label">Services orchestrated</div></div>
+    <div class="metric"><div class="metric-num"><span data-count="8">0</span></div><div class="metric-label">Alerting rules wired</div></div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem" aria-labelledby="problem-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>The problem</span>
+    <h2 class="section-title" id="problem-h">Telecom provisioning is brittle, manual, and audit-hostile.</h2>
+    <p class="section-lede">Operators ship millions of SIMs a day. The control plane that activates them is usually a tangle of spreadsheets, ticket queues, and shell scripts. We rebuilt that control plane the way an SRE would.</p>
+    <div class="three-col">
+      <article class="card reveal">
+        <span class="kicker-num">01 · activation latency</span>
+        <h3>Hours, not seconds</h3>
+        <p>Legacy provisioning rounds through CRM, billing, HLR, and OSS by hand. By the time a SIM is live, the customer has churned at the point-of-sale.</p>
+      </article>
+      <article class="card reveal">
+        <span class="kicker-num">02 · drift</span>
+        <h3>Every region is a snowflake</h3>
+        <p>Ring deployments diverge because infra is clicked, not coded. Compliance changes can't ship safely across geographies.</p>
+      </article>
+      <article class="card reveal">
+        <span class="kicker-num">03 · MTTR</span>
+        <h3>Stuck SIMs go unseen</h3>
+        <p>Without RED metrics and structured logs, mean time to recovery sits north of an hour. Customers feel every minute.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT WE BUILT -->
+<section id="built" aria-labelledby="built-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>What we built</span>
+    <div class="two-col">
+      <div>
+        <h2 class="section-title" id="built-h">A real service, wrapped in a real DevOps lifecycle.</h2>
+        <p class="section-lede">Not a slide deck. A FastAPI provisioning API, an async state-machine worker, a Postgres-backed inventory of 5,000 SIMs, and an operator dashboard — all delivered through a fully scripted DevOps lifecycle from Terraform to ELK.</p>
+        <div class="code-block">
+          <div class="code-chrome">
+            <span class="code-dots"><span></span><span></span><span></span></span>
+            <span class="code-lang">curl · activate one SIM</span>
+            <button class="code-copy" aria-label="Copy">Copy</button>
+          </div>
+<pre><span class="c"># Activate a SIM and assign an MSISDN from the pool</span>
+curl -X POST https://sim-ops.itm.edu/api/v1/sims/<span class="n">8991100012345678901</span>/activate \
+  -H <span class="s">"Authorization: Bearer $VAULT_TOKEN"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"plan_id": "PLAN_DATA_25GB", "region": "IN-MH"}'</span>
+
+<span class="c"># → 201 Created</span>
+<span class="c"># {"iccid":"...","msisdn":"+919876543210","status":"ACTIVE",</span>
+<span class="c">#  "activated_at":"2026-06-21T13:04:12Z","plan":"PLAN_DATA_25GB"}</span></pre>
+        </div>
+      </div>
+      <aside>
+        <div class="card">
+          <span class="kicker-num">State machine</span>
+          <h3>SIM lifecycle, event-sourced</h3>
+          <p style="margin-bottom:14px">Every transition writes an immutable audit row keyed by ICCID, so any SIM can be replayed from cold storage.</p>
+          <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);line-height:1.9">
+            <div>PENDING <span style="color:var(--cyan)">→</span> ALLOCATED</div>
+            <div>ALLOCATED <span style="color:var(--cyan)">→</span> ACTIVE</div>
+            <div>ACTIVE <span style="color:var(--amber)">→</span> SUSPENDED <span style="color:var(--cyan)">→</span> ACTIVE</div>
+            <div>ACTIVE <span style="color:var(--rose)">→</span> PORTED</div>
+            <div>ANY <span style="color:var(--text-mute)">→</span> RECYCLED (TTL 180d)</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture" aria-labelledby="arch-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Architecture</span>
+    <h2 class="section-title" id="arch-h">Six layers, one control plane.</h2>
+    <p class="section-lede">Inline, interactive — hover any node for the design intent. Want the deeper rationale (distroless, multi-AZ RDS over Aurora, Kustomize over Helm)? <a href="architecture.html" style="color:var(--cyan);border-bottom:1px solid var(--cyan)">Read the architecture brief →</a></p>
+    <div class="arch-frame">
+      <svg viewBox="0 0 1200 720" font-family="JetBrains Mono, monospace" font-size="12" aria-label="System architecture diagram">
+        <defs>
+          <pattern id="g1" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F2937" stroke-width="1" opacity="0.4"/>
+          </pattern>
+          <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6B7280"/>
+          </marker>
+        </defs>
+        <rect width="1200" height="720" fill="transparent"/>
+        <rect width="1200" height="720" fill="url(#g1)"/>
+
+        <text x="24" y="100" fill="#6B7280" font-size="10" letter-spacing="2">CLIENT</text>
+        <text x="24" y="200" fill="#6B7280" font-size="10" letter-spacing="2">EDGE</text>
+        <text x="24" y="340" fill="#6B7280" font-size="10" letter-spacing="2">COMPUTE</text>
+        <text x="24" y="520" fill="#6B7280" font-size="10" letter-spacing="2">DATA + SECRETS</text>
+        <text x="24" y="660" fill="#6B7280" font-size="10" letter-spacing="2">OBSERVABILITY</text>
+        <line x1="120" y1="60" x2="120" y2="700" stroke="#6B7280" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
+
+        <g data-arch-tip="Operator Browser|Vanilla HTML + Tailwind + JS. No build step. Loads dashboards, KPIs, audit log, and the live activation feed.">
+          <rect x="500" y="60" width="200" height="64" rx="10" fill="#0B0F1A" stroke="#22D3EE"/>
+          <text x="600" y="90" text-anchor="middle" fill="#E5E7EB" font-size="13">Operator Browser</text>
+          <text x="600" y="108" text-anchor="middle" fill="#9CA3AF" font-size="10">HTML · Tailwind · vanilla JS</text>
+        </g>
+
+        <g data-arch-tip="AWS ALB · Ingress|TLS termination via ACM, WAF rules attached, 3-AZ. Health-checked behind Route 53 weighted records.">
+          <rect x="500" y="170" width="200" height="64" rx="10" fill="#0B0F1A" stroke="#22D3EE"/>
+          <text x="600" y="200" text-anchor="middle" fill="#E5E7EB" font-size="13">AWS ALB / Ingress</text>
+          <text x="600" y="218" text-anchor="middle" fill="#9CA3AF" font-size="10">TLS termination · WAF</text>
+        </g>
+
+        <g data-arch-tip="Web Pods|nginx serving the static operator dashboard. Distroless image, read-only root FS, runs as UID 65532.">
+          <rect x="220" y="290" width="200" height="84" rx="10" fill="#0B0F1A" stroke="#8B5CF6"/>
+          <text x="320" y="320" text-anchor="middle" fill="#E5E7EB" font-size="13">Web Pod ×2</text>
+          <text x="320" y="338" text-anchor="middle" fill="#9CA3AF" font-size="10">nginx · static dashboard</text>
+          <text x="320" y="358" text-anchor="middle" fill="#9CA3AF" font-size="10">distroless · readOnlyRootFS</text>
+        </g>
+        <g data-arch-tip="API Pods|FastAPI + uvicorn workers. /activate · /suspend · /port · /query. HPA scales 3 → 12 on CPU and request rate.">
+          <rect x="500" y="290" width="200" height="84" rx="10" fill="#0B0F1A" stroke="#8B5CF6"/>
+          <text x="600" y="320" text-anchor="middle" fill="#E5E7EB" font-size="13">API Pod ×3 (HPA)</text>
+          <text x="600" y="338" text-anchor="middle" fill="#9CA3AF" font-size="10">FastAPI · uvicorn</text>
+          <text x="600" y="358" text-anchor="middle" fill="#9CA3AF" font-size="10">/activate · /port · /query</text>
+        </g>
+        <g data-arch-tip="Worker Pods|Async state-machine drives SIMs through PENDING → ALLOCATED → ACTIVE → SUSPENDED → PORTED. Idempotent, event-sourced.">
+          <rect x="780" y="290" width="200" height="84" rx="10" fill="#0B0F1A" stroke="#8B5CF6"/>
+          <text x="880" y="320" text-anchor="middle" fill="#E5E7EB" font-size="13">Worker Pod ×2</text>
+          <text x="880" y="338" text-anchor="middle" fill="#9CA3AF" font-size="10">SIM state machine</text>
+          <text x="880" y="358" text-anchor="middle" fill="#9CA3AF" font-size="10">PENDING → ACTIVE → …</text>
+        </g>
+
+        <g data-arch-tip="Mock HLR / HSS|Sidecar that stubs the telco signalling layer. Lets us demonstrate the end-to-end flow without real OSS gear.">
+          <rect x="1020" y="290" width="160" height="84" rx="10" fill="#0B0F1A" stroke="#8B5CF6"/>
+          <text x="1100" y="320" text-anchor="middle" fill="#E5E7EB" font-size="13">Mock HLR/HSS</text>
+          <text x="1100" y="338" text-anchor="middle" fill="#9CA3AF" font-size="10">sidecar adapter</text>
+          <text x="1100" y="358" text-anchor="middle" fill="#9CA3AF" font-size="10">replaces real telco gear</text>
+        </g>
+
+        <g data-arch-tip="PostgreSQL · RDS Multi-AZ|SIM inventory, MSISDN pool, audit_events. Synchronous standby in a second AZ. PITR enabled, 5-minute RPO target.">
+          <rect x="320" y="470" width="220" height="80" rx="10" fill="#0B0F1A" stroke="#10B981"/>
+          <text x="430" y="500" text-anchor="middle" fill="#E5E7EB" font-size="13">PostgreSQL · RDS Multi-AZ</text>
+          <text x="430" y="518" text-anchor="middle" fill="#9CA3AF" font-size="10">SIM inventory · MSISDN pool</text>
+          <text x="430" y="536" text-anchor="middle" fill="#9CA3AF" font-size="10">audit_events · PITR · 5m RPO</text>
+        </g>
+        <g data-arch-tip="HashiCorp Vault|Issues DB creds, API tokens, TLS certs. Vault Agent Injector mounts secrets into pods. Raft storage, snapshotted to S3.">
+          <rect x="600" y="470" width="180" height="80" rx="10" fill="#0B0F1A" stroke="#F43F5E"/>
+          <text x="690" y="500" text-anchor="middle" fill="#E5E7EB" font-size="13">HashiCorp Vault</text>
+          <text x="690" y="518" text-anchor="middle" fill="#9CA3AF" font-size="10">DB creds · API tokens</text>
+          <text x="690" y="536" text-anchor="middle" fill="#9CA3AF" font-size="10">Agent Injector · Raft</text>
+        </g>
+        <g data-arch-tip="S3 · Backups|Vault Raft snapshots, Elasticsearch snapshots, audit dumps. Cross-region replication to us-west-2.">
+          <rect x="840" y="470" width="180" height="80" rx="10" fill="#0B0F1A" stroke="#10B981"/>
+          <text x="930" y="500" text-anchor="middle" fill="#E5E7EB" font-size="13">S3 · Backups</text>
+          <text x="930" y="518" text-anchor="middle" fill="#9CA3AF" font-size="10">Raft snapshots</text>
+          <text x="930" y="536" text-anchor="middle" fill="#9CA3AF" font-size="10">ES snapshots · audit dumps</text>
+        </g>
+
+        <g data-arch-tip="Prometheus|Scrapes API, worker, kube-state, node-exporter. Recording rules for RED + SLO burn-rate.">
+          <rect x="180" y="620" width="160" height="64" rx="10" fill="#0B0F1A" stroke="#F59E0B"/>
+          <text x="260" y="650" text-anchor="middle" fill="#E5E7EB" font-size="13">Prometheus</text>
+          <text x="260" y="668" text-anchor="middle" fill="#9CA3AF" font-size="10">scrape · recording rules</text>
+        </g>
+        <g data-arch-tip="Grafana|RED + USE + SLO dashboards, alert overview, capacity panels. SSO via OIDC.">
+          <rect x="360" y="620" width="160" height="64" rx="10" fill="#0B0F1A" stroke="#F59E0B"/>
+          <text x="440" y="650" text-anchor="middle" fill="#E5E7EB" font-size="13">Grafana</text>
+          <text x="440" y="668" text-anchor="middle" fill="#9CA3AF" font-size="10">RED + SLO dashboards</text>
+        </g>
+        <g data-arch-tip="Alertmanager|Eight production alerts (5xx burn, queue depth, lag, DB connections, cert expiry, pod restart loop, disk, oncall heartbeat) routed to Slack and PagerDuty.">
+          <rect x="540" y="620" width="160" height="64" rx="10" fill="#0B0F1A" stroke="#F59E0B"/>
+          <text x="620" y="650" text-anchor="middle" fill="#E5E7EB" font-size="13">Alertmanager</text>
+          <text x="620" y="668" text-anchor="middle" fill="#9CA3AF" font-size="10">8 rules → Slack/PagerDuty</text>
+        </g>
+        <g data-arch-tip="Elasticsearch|Hot/warm tiers. Daily snapshots to S3. Index lifecycle managed; raw audit retained 30 days, KPI rollups for 1 year.">
+          <rect x="720" y="620" width="160" height="64" rx="10" fill="#0B0F1A" stroke="#F59E0B"/>
+          <text x="800" y="650" text-anchor="middle" fill="#E5E7EB" font-size="13">Elasticsearch</text>
+          <text x="800" y="668" text-anchor="middle" fill="#9CA3AF" font-size="10">hot/warm tiers</text>
+        </g>
+        <g data-arch-tip="Kibana + Logstash|Filebeat ships from each pod; Logstash enriches with ICCID + trace_id; Kibana dashboards for the on-call.">
+          <rect x="900" y="620" width="160" height="64" rx="10" fill="#0B0F1A" stroke="#F59E0B"/>
+          <text x="980" y="650" text-anchor="middle" fill="#E5E7EB" font-size="13">Kibana + Logstash</text>
+          <text x="980" y="668" text-anchor="middle" fill="#9CA3AF" font-size="10">Filebeat shippers</text>
+        </g>
+
+        <line x1="600" y1="124" x2="600" y2="166" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="600" y1="234" x2="600" y2="286" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="540" y1="234" x2="320" y2="286" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="660" y1="234" x2="880" y2="286" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="600" y1="374" x2="430" y2="466" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="600" y1="374" x2="690" y2="466" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="880" y1="374" x2="690" y2="466" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="880" y1="374" x2="930" y2="466" stroke="#6B7280" stroke-dasharray="4 4"/>
+        <line x1="980" y1="332" x2="1018" y2="332" stroke="#6B7280" marker-end="url(#ar1)"/>
+        <line x1="320" y1="374" x2="260" y2="618" stroke="#6B7280" stroke-dasharray="4 4"/>
+        <line x1="600" y1="374" x2="440" y2="618" stroke="#6B7280" stroke-dasharray="4 4"/>
+        <line x1="880" y1="374" x2="800" y2="618" stroke="#6B7280" stroke-dasharray="4 4"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK CONSTELLATION -->
+<section id="stack" aria-labelledby="stack-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Stack</span>
+    <h2 class="section-title" id="stack-h">A deliberately small constellation.</h2>
+    <p class="section-lede">Every tool earns its place: one orchestrator, one secrets store, one IaC, one CI engine, one logging pipeline, one monitoring stack. No second-system effect.</p>
+    <div class="constellation" aria-label="Technology stack">
+      <span class="tech" style="top:14%;left:8%"><span class="dot"></span>Python 3.12</span>
+      <span class="tech violet" style="top:8%;left:30%"><span class="dot"></span>FastAPI</span>
+      <span class="tech emerald" style="top:22%;left:54%"><span class="dot"></span>PostgreSQL 16</span>
+      <span class="tech" style="top:6%;left:74%"><span class="dot"></span>Tailwind</span>
+      <span class="tech amber" style="top:36%;left:14%"><span class="dot"></span>Prometheus</span>
+      <span class="tech amber" style="top:48%;left:38%"><span class="dot"></span>Grafana</span>
+      <span class="tech violet" style="top:42%;left:62%"><span class="dot"></span>Kubernetes</span>
+      <span class="tech violet" style="top:30%;left:82%"><span class="dot"></span>Kustomize</span>
+      <span class="tech" style="top:58%;left:8%"><span class="dot"></span>Docker · distroless</span>
+      <span class="tech rose" style="top:62%;left:34%"><span class="dot"></span>HashiCorp Vault</span>
+      <span class="tech amber" style="top:66%;left:58%"><span class="dot"></span>Elasticsearch</span>
+      <span class="tech amber" style="top:58%;left:80%"><span class="dot"></span>Kibana</span>
+      <span class="tech" style="top:80%;left:14%"><span class="dot"></span>Jenkins</span>
+      <span class="tech" style="top:84%;left:36%"><span class="dot"></span>GitHub Actions</span>
+      <span class="tech emerald" style="top:78%;left:58%"><span class="dot"></span>Terraform · AWS</span>
+      <span class="tech" style="top:84%;left:80%"><span class="dot"></span>Filebeat</span>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline" aria-labelledby="pipe-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>CI / CD</span>
+    <h2 class="section-title" id="pipe-h">Seven stages, one promotion path.</h2>
+    <p class="section-lede">Jenkins declarative pipeline mirrored in GitHub Actions for PR validation. Every merge to <span class="chip">main</span> ships a signed image tag and applies a Kustomize overlay.</p>
+    <div class="pipeline">
+      <div class="pipeline-track">
+        <div class="pipeline-line" aria-hidden="true"></div>
+        <span class="pipeline-dot" aria-hidden="true"></span>
+
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7l5-5 5 5M12 2v13M5 22h14"/></svg></div><div class="stage-name">Checkout</div><div class="stage-time">~4s</div></div>
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg></div><div class="stage-name">Lint</div><div class="stage-time">~18s</div></div>
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12c0 5-9 9-9 9s-9-4-9-9V5l9-3 9 3v7z"/></svg></div><div class="stage-name">Test</div><div class="stage-time">~52s</div></div>
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></div><div class="stage-name">Build</div><div class="stage-time">~1m 12s</div></div>
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="stage-name">Scan</div><div class="stage-time">~34s</div></div>
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="stage-name">Push</div><div class="stage-time">~22s</div></div>
+        <div class="stage"><div class="stage-node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div><div class="stage-name">Deploy</div><div class="stage-time">~46s</div></div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:28px">
+      <div class="code-block">
+        <div class="code-chrome">
+          <span class="code-dots"><span></span><span></span><span></span></span>
+          <span class="code-lang">jenkins/Jenkinsfile · excerpt</span>
+          <button class="code-copy">Copy</button>
+        </div>
+<pre><span class="k">pipeline</span> {
+  agent { label <span class="s">'eks-builder'</span> }
+  options { timeout(time: <span class="n">20</span>, unit: <span class="s">'MINUTES'</span>) }
+  environment {
+    REGISTRY = <span class="s">"ghcr.io/itm-sayuj/sim-ops"</span>
+    KUBECONFIG = credentials(<span class="s">'kubeconfig-staging'</span>)
+  }
+  stages {
+    stage(<span class="s">'Lint'</span>)   { steps { sh <span class="s">'ruff check app/'</span> } }
+    stage(<span class="s">'Test'</span>)   { steps { sh <span class="s">'pytest -q --cov=app'</span> } }
+    stage(<span class="s">'Build'</span>)  { steps { sh <span class="s">"docker build -t $REGISTRY/api:$GIT_COMMIT -f docker/Dockerfile.api ."</span> } }
+    stage(<span class="s">'Scan'</span>)   { steps { sh <span class="s">"trivy image --severity HIGH,CRITICAL $REGISTRY/api:$GIT_COMMIT"</span> } }
+    stage(<span class="s">'Push'</span>)   { steps { sh <span class="s">"docker push $REGISTRY/api:$GIT_COMMIT"</span> } }
+    stage(<span class="s">'Deploy'</span>) { steps { sh <span class="s">"kustomize build k8s/overlays/staging | kubectl apply -f -"</span> } }
+  }
+}</pre>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Quality gates that fail the build</h3>
+        <ul style="color:var(--text-dim);font-size:14.5px;line-height:1.85;padding-left:18px">
+          <li><span class="chip">ruff</span> + <span class="chip">mypy --strict</span> on the API package</li>
+          <li><span class="chip">pytest</span> with 85% coverage floor on <span class="chip">app/core</span></li>
+          <li><span class="chip">trivy</span> HIGH/CRITICAL CVE gate on the runtime image</li>
+          <li><span class="chip">conftest</span> OPA policies on Terraform plans (tags, encryption)</li>
+          <li>Cosign signature required before <span class="chip">kubectl apply</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KUBERNETES -->
+<section id="k8s" aria-labelledby="k8s-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Orchestration</span>
+    <h2 class="section-title" id="k8s-h">Workloads, the way kubelet sees them.</h2>
+    <p class="section-lede">All manifests live under <span class="chip">k8s/base/</span> with environment overlays in <span class="chip">k8s/overlays/{dev,staging,prod}/</span>. Every workload ships resource limits, liveness + readiness probes, a PDB, and a NetworkPolicy.</p>
+    <div class="k8s-topo">
+      <div class="k8s-row">
+        <div class="k8s-label">Ingress</div>
+        <div class="k8s-pods"><span class="pod cyan"><span class="pod-dot"></span>ingress-nginx · alb</span></div>
+        <div class="k8s-label" style="text-align:right">1 replica · MultiAZ</div>
+      </div>
+      <div class="k8s-row">
+        <div class="k8s-label">Web</div>
+        <div class="k8s-pods">
+          <span class="pod"><span class="pod-dot"></span>web-7df9c2 · 1a</span>
+          <span class="pod"><span class="pod-dot"></span>web-441f99 · 1b</span>
+        </div>
+        <div class="k8s-label" style="text-align:right">2 / 2 ready</div>
+      </div>
+      <div class="k8s-row">
+        <div class="k8s-label">API</div>
+        <div class="k8s-pods">
+          <span class="pod violet"><span class="pod-dot"></span>api-2a4cc1 · 1a</span>
+          <span class="pod violet"><span class="pod-dot"></span>api-9c1402 · 1b</span>
+          <span class="pod violet"><span class="pod-dot"></span>api-cc1145 · 1c</span>
+        </div>
+        <div class="k8s-label" style="text-align:right">HPA 3 → 12</div>
+      </div>
+      <div class="k8s-row">
+        <div class="k8s-label">Worker</div>
+        <div class="k8s-pods">
+          <span class="pod amber"><span class="pod-dot"></span>worker-441e · 1a</span>
+          <span class="pod amber"><span class="pod-dot"></span>worker-bb29 · 1b</span>
+        </div>
+        <div class="k8s-label" style="text-align:right">2 / 2 ready</div>
+      </div>
+      <div class="k8s-row">
+        <div class="k8s-label">Sidecars</div>
+        <div class="k8s-pods">
+          <span class="pod"><span class="pod-dot"></span>mock-hlr · daemonset</span>
+          <span class="pod"><span class="pod-dot"></span>vault-agent · injected</span>
+          <span class="pod"><span class="pod-dot"></span>filebeat · daemonset</span>
+        </div>
+        <div class="k8s-label" style="text-align:right">platform tier</div>
+      </div>
+      <div class="k8s-row">
+        <div class="k8s-label">Platform</div>
+        <div class="k8s-pods">
+          <span class="pod amber"><span class="pod-dot"></span>prometheus-0</span>
+          <span class="pod amber"><span class="pod-dot"></span>grafana-0</span>
+          <span class="pod amber"><span class="pod-dot"></span>alertmanager-0</span>
+        </div>
+        <div class="k8s-label" style="text-align:right">monitoring ns</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OBSERVABILITY -->
+<section id="operations" aria-labelledby="ops-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Operations</span>
+    <h2 class="section-title" id="ops-h">RED metrics, structured logs, eight alerts you can actually answer.</h2>
+    <p class="section-lede">Each alert ships with a documented runbook. <a href="runbook.html" style="color:var(--cyan);border-bottom:1px solid var(--cyan)">Open the operator runbook →</a></p>
+    <div class="obs-grid">
+      <div class="obs-panel">
+        <div class="obs-head"><span class="tag">Prometheus</span><span class="title">sim_activations_total · rate(5m)</span></div>
+        <div class="obs-body">
+          <div class="chart-mock">
+            <svg viewBox="0 0 600 180" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="fillc" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#22D3EE" stop-opacity="0.4"/>
+                  <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g stroke="#1F2937" stroke-width="1">
+                <line x1="0" y1="40" x2="600" y2="40"/>
+                <line x1="0" y1="90" x2="600" y2="90"/>
+                <line x1="0" y1="140" x2="600" y2="140"/>
+              </g>
+              <path d="M0 130 L40 120 L80 122 L120 100 L160 110 L200 80 L240 90 L280 60 L320 75 L360 45 L400 55 L440 35 L480 50 L520 25 L560 40 L600 18 L600 180 L0 180 Z" fill="url(#fillc)"/>
+              <path d="M0 130 L40 120 L80 122 L120 100 L160 110 L200 80 L240 90 L280 60 L320 75 L360 45 L400 55 L440 35 L480 50 L520 25 L560 40 L600 18" fill="none" stroke="#22D3EE" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="obs-panel">
+        <div class="obs-head"><span class="tag">SLO</span><span class="title">Availability · 30-day window</span></div>
+        <div class="obs-body">
+          <div class="kpi-list">
+            <div class="kpi-item"><span class="label">Target</span><span class="val">99.95%</span></div>
+            <div class="kpi-item"><span class="label">Actual</span><span class="val ok">99.971%</span></div>
+            <div class="kpi-item"><span class="label">Error budget remaining</span><span class="val ok">42.1%</span></div>
+            <div class="kpi-item"><span class="label">Burn rate (1h)</span><span class="val">0.34×</span></div>
+            <div class="kpi-item"><span class="label">P95 activation latency</span><span class="val">218 ms</span></div>
+            <div class="kpi-item"><span class="label">Queue depth (worker)</span><span class="val warn">142</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="obs-grid" style="margin-top:20px">
+      <div class="obs-panel">
+        <div class="obs-head"><span class="tag" style="background:rgba(245,158,11,.1);color:var(--amber)">Kibana</span><span class="title">sim-ops-* · stuck activations</span></div>
+        <div class="obs-body">
+          <div class="chart-mock">
+            <svg viewBox="0 0 600 180" preserveAspectRatio="none" aria-hidden="true">
+              <g>
+                <rect x="20" y="120" width="22" height="40" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="60" y="100" width="22" height="60" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="100" y="80" width="22" height="80" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="140" y="60" width="22" height="100" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="180" y="90" width="22" height="70" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="220" y="40" width="22" height="120" fill="#F59E0B" opacity="0.8"/>
+                <rect x="260" y="20" width="22" height="140" fill="#F43F5E" opacity="0.85"/>
+                <rect x="300" y="50" width="22" height="110" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="340" y="70" width="22" height="90" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="380" y="90" width="22" height="70" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="420" y="110" width="22" height="50" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="460" y="130" width="22" height="30" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="500" y="120" width="22" height="40" fill="#8B5CF6" opacity="0.7"/>
+                <rect x="540" y="125" width="22" height="35" fill="#8B5CF6" opacity="0.7"/>
+              </g>
+              <line x1="0" y1="160" x2="600" y2="160" stroke="#1F2937"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="obs-panel">
+        <div class="obs-head"><span class="tag" style="background:rgba(244,63,94,.1);color:var(--rose)">Alertmanager</span><span class="title">Active alerts · last 24h</span></div>
+        <div class="obs-body">
+          <div class="kpi-list">
+            <div class="kpi-item"><span class="label">SimActivationStuck</span><span class="val warn">FIRING · 6m</span></div>
+            <div class="kpi-item"><span class="label">APIHighErrorRate</span><span class="val ok">resolved · 02:14</span></div>
+            <div class="kpi-item"><span class="label">PostgresConnHigh</span><span class="val ok">resolved · 04:51</span></div>
+            <div class="kpi-item"><span class="label">VaultLeaderLost</span><span class="val ok">no fire · 30d</span></div>
+            <div class="kpi-item"><span class="label">CertExpiry30d</span><span class="val ok">no fire · 30d</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VAULT -->
+<section id="vault" aria-labelledby="vault-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Security &amp; Secrets</span>
+    <h2 class="section-title" id="vault-h">No long-lived secret leaves the cluster.</h2>
+    <p class="section-lede">Pods authenticate to Vault via the Kubernetes auth backend, fetch short-lived DB credentials and API tokens, and have them renewed by the Vault Agent sidecar — no env vars in manifests, no secrets in Git.</p>
+    <div class="vault-flow">
+      <div class="vault-step">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h5>Pod start</h5>
+        <p>kubelet mounts SA token</p>
+      </div>
+      <div class="vault-arrow">→</div>
+      <div class="vault-step">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1l3 6 6 .9-4.5 4.3 1 6.3L12 15.8 6.5 18.5l1-6.3L3 7.9 9 7z"/></svg></div>
+        <h5>Vault auth</h5>
+        <p>SA validated via TokenReview</p>
+      </div>
+      <div class="vault-arrow">→</div>
+      <div class="vault-step">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h5>Issue creds</h5>
+        <p>1h lease · DB role · revocable</p>
+      </div>
+      <div class="vault-arrow">→</div>
+      <div class="vault-step">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><path d="M3 12h18"/></svg></div>
+        <h5>Inject</h5>
+        <p>Agent writes /vault/secrets</p>
+      </div>
+      <div class="vault-arrow">→</div>
+      <div class="vault-step">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 4v4h-4M6 20v-4h4"/></svg></div>
+        <h5>Renew</h5>
+        <p>Sidecar rotates pre-expiry</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DR -->
+<section id="dr" aria-labelledby="dr-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Disaster Recovery</span>
+    <h2 class="section-title" id="dr-h">Six scenarios, rehearsed.</h2>
+    <p class="section-lede">Each scenario carries a detection signal, an automatic response, a manual playbook, and a recovery validation step. The full game-day procedure lives in <a href="dr-plan.html" style="color:var(--cyan);border-bottom:1px solid var(--cyan)">dr-plan.html</a>.</p>
+    <div class="accordion">
+      <div class="acc-item" aria-expanded="true">
+        <button class="acc-head">
+          <span class="sev">High</span>
+          <span class="title">RDS AZ failure · primary node lost</span>
+          <span class="meta">RPO 0 · RTO ≤ 60s</span>
+          <svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="acc-body">
+          <p><strong>Detection</strong> — CloudWatch <span class="chip">DatabaseConnections</span> drop to zero; Prometheus alert <span class="chip">PostgresUnreachable</span> fires within 30s.</p>
+          <p><strong>Automatic response</strong> — RDS Multi-AZ promotes synchronous standby; CNAME flips; API pods reconnect via pgbouncer with exponential backoff.</p>
+          <p><strong>Manual playbook</strong></p>
+          <ol>
+            <li>Acknowledge the alert in PagerDuty; freeze deploys via <span class="chip">scripts/freeze.sh</span>.</li>
+            <li>Confirm failover in RDS console; verify writer endpoint resolves to new AZ.</li>
+            <li>Tail API logs for reconnection errors; restart any pods stuck on stale connections.</li>
+            <li>Re-enable deploys; open incident review ticket.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="acc-item" aria-expanded="false">
+        <button class="acc-head">
+          <span class="sev">High</span>
+          <span class="title">Region loss · us-east-1 unavailable</span>
+          <span class="meta">RPO 5m · RTO 30m</span>
+          <svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="acc-body">
+          <p><strong>Detection</strong> — Route 53 health checks fail across all ALB targets; external synthetic check from <span class="chip">us-west-2</span> reports red.</p>
+          <p><strong>Manual playbook</strong></p>
+          <ol>
+            <li>Promote DR RDS cross-region read replica to standalone primary.</li>
+            <li>Restore Vault from latest Raft snapshot in <span class="chip">s3://sim-ops-dr/vault/</span>.</li>
+            <li><span class="chip">kubectl apply -k k8s/overlays/dr</span> to spin up warm cluster.</li>
+            <li>Flip Route 53 weighted record to <span class="chip">us-west-2</span>; warm CDN cache.</li>
+            <li>Validate end-to-end with <span class="chip">scripts/smoke-dr.sh</span>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="acc-item" aria-expanded="false">
+        <button class="acc-head">
+          <span class="sev warn">Medium</span>
+          <span class="title">Vault leader lost · Raft quorum at risk</span>
+          <span class="meta">RPO 1m · RTO 15m</span>
+          <svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="acc-body">
+          <p><strong>Detection</strong> — <span class="chip">vault_core_active</span> gauge drops; <span class="chip">VaultLeaderLost</span> alert; pod secret renewals start failing.</p>
+          <p><strong>Manual playbook</strong></p>
+          <ol>
+            <li>Inspect <span class="chip">vault status</span> across pods; identify quorum loss vs. transient.</li>
+            <li>If quorum lost: restore latest Raft snapshot via <span class="chip">vault operator raft snapshot restore</span>.</li>
+            <li>Re-unseal with Shamir keys held by oncall + lead.</li>
+            <li>Force-renew agent leases for API + worker pods.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="acc-item" aria-expanded="false">
+        <button class="acc-head">
+          <span class="sev warn">Medium</span>
+          <span class="title">EKS control plane upgrade hangs</span>
+          <span class="meta">RPO 0 · RTO 45m</span>
+          <svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="acc-body">
+          <p>Data plane keeps serving traffic. Cordon nodes, recreate the cluster from Terraform module, drain old nodes into the new managed node groups.</p>
+        </div>
+      </div>
+
+      <div class="acc-item" aria-expanded="false">
+        <button class="acc-head">
+          <span class="sev info">Low</span>
+          <span class="title">Malicious pod · CVE in dependency</span>
+          <span class="meta">RPO 0 · RTO 10m</span>
+          <svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="acc-body">
+          <p>Trivy SBOM diff identifies the vulnerable image; NetworkPolicy isolates the affected workload; pin previous tag via <span class="chip">kustomize edit set image</span>; revoke any Vault leases issued in the breach window.</p>
+        </div>
+      </div>
+
+      <div class="acc-item" aria-expanded="false">
+        <button class="acc-head">
+          <span class="sev info">Low</span>
+          <span class="title">TLS certificate expiry</span>
+          <span class="meta">RPO 0 · RTO 5m</span>
+          <svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="acc-body">
+          <p>cert-manager renewal failure is caught by <span class="chip">CertExpiry30d</span> alert. Manual playbook: force renew via <span class="chip">kubectl annotate certificate sim-ops cert-manager.io/force-renew=true</span> and confirm new secret rotates into the ingress.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section id="screens" aria-labelledby="screens-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Demonstration</span>
+    <h2 class="section-title" id="screens-h">What the examiner will see live.</h2>
+    <p class="section-lede">Screenshots from the demonstration environment. The carousel auto-advances; hover to pause.</p>
+    <div class="carousel" aria-roledescription="carousel">
+      <div class="car-chrome">
+        <span class="dots"><span></span><span></span><span></span></span>
+        <span class="car-url">sim-ops.itm.edu/dashboard</span>
+      </div>
+      <div class="car-stage">
+        <div class="car-slide active" data-url="sim-ops.itm.edu/dashboard">
+          <div>
+            <h4>Operator Dashboard</h4>
+            <p>Live SIM inventory, activation feed, KPIs, audit trail.</p>
+            <div class="placeholder">screenshots/01-dashboard.png</div>
+          </div>
+        </div>
+        <div class="car-slide" data-url="grafana.sim-ops.itm.edu">
+          <div>
+            <h4>Grafana — SLO board</h4>
+            <p>RED metrics, burn-rate, p50/p95/p99 activation latency.</p>
+            <div class="placeholder">screenshots/02-grafana.png</div>
+          </div>
+        </div>
+        <div class="car-slide" data-url="kibana.sim-ops.itm.edu">
+          <div>
+            <h4>Kibana — audit search</h4>
+            <p>Structured logs filtered by ICCID across all pods.</p>
+            <div class="placeholder">screenshots/03-kibana.png</div>
+          </div>
+        </div>
+        <div class="car-slide" data-url="vault.sim-ops.itm.edu">
+          <div>
+            <h4>Vault — kv/db roles</h4>
+            <p>Dynamic Postgres credentials with 1h leases.</p>
+            <div class="placeholder">screenshots/04-vault.png</div>
+          </div>
+        </div>
+        <div class="car-slide" data-url="jenkins.sim-ops.itm.edu/job/sim-ops">
+          <div>
+            <h4>Jenkins pipeline</h4>
+            <p>Green run across all seven stages on the latest commit.</p>
+            <div class="placeholder">screenshots/05-jenkins.png</div>
+          </div>
+        </div>
+        <div class="car-slide" data-url="kubectl get pods -n sim-ops">
+          <div>
+            <h4>kubectl — running pods</h4>
+            <p>All workloads ready across three AZs.</p>
+            <div class="placeholder">screenshots/06-kubectl.png</div>
+          </div>
+        </div>
+        <div class="car-slide" data-url="terraform plan · sim-ops/prod">
+          <div>
+            <h4>Terraform plan</h4>
+            <p>Clean plan against production state — zero drift.</p>
+            <div class="placeholder">screenshots/07-terraform.png</div>
+          </div>
+        </div>
+      </div>
+      <div class="car-controls">
+        <div class="car-pips" role="tablist">
+          <button class="active" aria-label="Slide 1"></button>
+          <button aria-label="Slide 2"></button>
+          <button aria-label="Slide 3"></button>
+          <button aria-label="Slide 4"></button>
+          <button aria-label="Slide 5"></button>
+          <button aria-label="Slide 6"></button>
+          <button aria-label="Slide 7"></button>
+        </div>
+        <div class="car-nav">
+          <button class="car-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="car-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERABLES MATRIX -->
+<section id="deliverables" aria-labelledby="deliv-h">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="eyebrow-dot"></span>Deliverables</span>
+    <h2 class="section-title" id="deliv-h">Fourteen tracks, fourteen artefacts.</h2>
+    <p class="section-lede">Every requirement from the case-study brief, mapped to the file or folder that satisfies it. Hover any cell for the file count behind it.</p>
+    <div class="matrix">
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Working Application</h4>
+        <span class="path">app/</span>
+        <span class="file-count">38 files</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Source Repo</h4>
+        <span class="path">github.com/…/devops</span>
+        <span class="file-count">main · protected</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Dockerfiles</h4>
+        <span class="path">docker/</span>
+        <span class="file-count">2 stages · distroless</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Jenkins Pipeline</h4>
+        <span class="path">jenkins/Jenkinsfile</span>
+        <span class="file-count">7 stages</span>
+      </div>
+
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Terraform IaC</h4>
+        <span class="path">terraform/</span>
+        <span class="file-count">VPC · EKS · RDS · S3</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Kubernetes</h4>
+        <span class="path">k8s/{base,overlays}/</span>
+        <span class="file-count">27 manifests</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Prometheus + Grafana</h4>
+        <span class="path">monitoring/</span>
+        <span class="file-count">8 alerts · 4 dashboards</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>ELK Stack</h4>
+        <span class="path">logging/</span>
+        <span class="file-count">ES · Logstash · Kibana</span>
+      </div>
+
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Vault</h4>
+        <span class="path">vault/</span>
+        <span class="file-count">5 policies · K8s auth</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Architecture Diagram</h4>
+        <span class="path">docs/assets/architecture.svg</span>
+        <span class="file-count">hand-authored SVG</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Deployment Diagram</h4>
+        <span class="path">docs/assets/deployment.svg</span>
+        <span class="file-count">3-AZ + DR</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Disaster Recovery</h4>
+        <span class="path">docs/dr-plan.html</span>
+        <span class="file-count">6 scenarios</span>
+      </div>
+
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Screenshots</h4>
+        <span class="path">docs/screenshots/</span>
+        <span class="file-count">7 demo captures</span>
+      </div>
+      <div class="matrix-cell">
+        <div class="matrix-check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-8"/></svg></div>
+        <h4>Project Documentation</h4>
+        <span class="path">docs/index.html</span>
+        <span class="file-count">you are here</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" id="team">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="#top" style="margin-bottom:14px">
+          <span class="brand-mark">S</span>
+          SIM-OPS <span class="brand-slash">/</span> ITM
+        </a>
+        <p style="color:var(--text-dim);font-size:13.5px;max-width:34ch;margin:14px 0 0">A telecom-grade DevOps case study. Built end-to-end as a single-author submission for ITM Skills University, Semester IV.</p>
+      </div>
+      <div>
+        <h5>Documentation</h5>
+        <ul>
+          <li><a href="architecture.html">Architecture brief</a></li>
+          <li><a href="dr-plan.html">Disaster recovery plan</a></li>
+          <li><a href="runbook.html">Operator runbook</a></li>
+          <li><a href="assets/architecture.svg">Architecture SVG</a></li>
+          <li><a href="assets/deployment.svg">Deployment SVG</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Source</h5>
+        <ul>
+          <li><a href="#">app/ — FastAPI service</a></li>
+          <li><a href="#">terraform/ — AWS IaC</a></li>
+          <li><a href="#">k8s/ — manifests</a></li>
+          <li><a href="#">monitoring/ — Prom + Grafana</a></li>
+          <li><a href="#">vault/ — policies</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Credit</h5>
+        <ul>
+          <li>Sayuj · author</li>
+          <li>ITM Skills University</li>
+          <li>B.Tech CSE · 2024-28</li>
+          <li>DevOps · Semester IV</li>
+          <li>Case Study 20</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Sayuj · ITM Skills University</span>
+      <span>SIM-OPS · v1.0 · build 20260621.184200</span>
+    </div>
+  </div>
+</footer>
+
+</main>
+<script src="assets/app.js" defer></script>
+</body>
+</html>
