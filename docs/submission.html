@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SIM Provisioning Automation Platform — Case Study Submission</title>
+<style>
+  /* ============================================================
+     Submission deck — A4, white pages, mesh-gradient cover.
+     Designed for Chrome headless --print-to-pdf.
+     ============================================================ */
+  :root {
+    --ink:   #0b1220;
+    --body:  #1f2937;
+    --muted: #6b7280;
+    --rule:  #e5e7eb;
+    --soft:  #f6f7f9;
+    --accent:#4f46e5; /* indigo */
+    --accent-2:#06b6d4; /* cyan */
+    --accent-3:#10b981; /* emerald */
+    --accent-4:#f59e0b; /* amber */
+    --danger:#ef4444;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: var(--body);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-feature-settings: 'ss01','cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+
+  /* Each .page = one A4 page */
+  .page {
+    width: 210mm;
+    height: 297mm;
+    padding: 22mm 22mm 18mm 22mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+    position: relative;
+    background: #fff;
+    overflow: hidden;
+  }
+  .page:last-of-type { page-break-after: auto; }
+
+  /* ======================================================
+     COVER PAGE
+     ====================================================== */
+  .cover {
+    padding: 0;
+    color: #fff;
+    background-color: #0b1220;
+    background-image:
+      radial-gradient(at 18% 22%, rgba(79, 70, 229, 0.55) 0%, transparent 42%),
+      radial-gradient(at 82% 12%, rgba(6, 182, 212, 0.55) 0%, transparent 45%),
+      radial-gradient(at 78% 88%, rgba(16, 185, 129, 0.42) 0%, transparent 48%),
+      radial-gradient(at 12% 82%, rgba(245, 158, 11, 0.30) 0%, transparent 45%),
+      linear-gradient(180deg, #0b1220 0%, #111827 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  /* subtle dotted grid overlay */
+  .cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.05) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.05) 100%);
+  }
+  /* horizon glow */
+  .cover::after {
+    content: '';
+    position: absolute;
+    left: -10%; right: -10%;
+    top: 55%; height: 280px;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.10) 0%, transparent 70%);
+    filter: blur(20px);
+    pointer-events: none;
+  }
+  .cover-inner {
+    position: relative;
+    z-index: 2;
+    padding: 24mm 22mm;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    min-height: 297mm;
+  }
+
+  .cover-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 100px;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    background: rgba(255,255,255,0.05);
+    width: max-content;
+  }
+  .cover-tag .dot {
+    width: 8px; height: 8px;
+    background: #34d399;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(52,211,153,0.25);
+  }
+  .cover h1 {
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.04;
+    color: #fff;
+    margin: 28px 0 22px;
+  }
+  .cover h1 .accent {
+    background: linear-gradient(90deg, #a5b4fc 0%, #67e8f9 60%, #6ee7b7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .cover-sub {
+    font-size: 19px;
+    color: rgba(255,255,255,0.78);
+    font-weight: 400;
+    max-width: 480px;
+    line-height: 1.55;
+  }
+  .cover-meta {
+    margin-top: 12mm;
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: 6mm 18mm;
+    color: rgba(255,255,255,0.85);
+    font-size: 13.5px;
+  }
+  .cover-meta dt {
+    color: rgba(255,255,255,0.5);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .cover-meta dd { margin: 0; font-weight: 500; font-size: 15px; }
+  .cover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    padding-top: 4mm;
+    border-top: 1px solid rgba(255,255,255,0.10);
+  }
+
+  /* Floating decorative shapes on cover */
+  .cover-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.45;
+    z-index: 1;
+  }
+  .cover-shape.a { width: 320px; height: 320px; background: #4f46e5; top: -80px; right: -60px; }
+  .cover-shape.b { width: 260px; height: 260px; background: #06b6d4; bottom: 12mm; left: -40px; opacity: 0.35; }
+
+  /* ======================================================
+     CONTENT PAGES
+     ====================================================== */
+  .pg-num {
+    position: absolute;
+    bottom: 12mm;
+    right: 22mm;
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.6px;
+  }
+  .pg-mark {
+    position: absolute;
+    top: 14mm; left: 22mm;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+  .pg-mark .bar {
+    width: 22px; height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+
+  .section-no {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+  h2.section-h {
+    font-size: 38px;
+    line-height: 1.1;
+    letter-spacing: -0.8px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 4px 0 14px;
+  }
+  .section-sub {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+    margin-bottom: 18mm;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.2px;
+    margin: 16px 0 6px;
+  }
+  p { font-size: 13.5px; color: var(--body); margin: 0 0 12px; }
+  ul { font-size: 13.5px; color: var(--body); padding-left: 18px; margin: 4px 0 14px; }
+  li { margin-bottom: 4px; }
+  strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    background: var(--soft);
+    color: var(--ink);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  .card {
+    background: var(--soft);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .card h4 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.1px;
+  }
+  .card p { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+  /* Stat row on TOC / intro */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 6mm 0 8mm;
+  }
+  .stat {
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 18px 16px;
+    background: #fff;
+  }
+  .stat .v {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat .v .u { font-size: 16px; color: var(--muted); font-weight: 500; margin-left: 3px; }
+  .stat .k {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Screenshot frame */
+  figure.shot {
+    margin: 0 0 14px;
+    page-break-inside: avoid;
+  }
+  figure.shot .frame {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 18px 30px -20px rgba(15,23,42,0.10);
+  }
+  figure.shot .topbar {
+    background: #f1f5f9;
+    border-bottom: 1px solid var(--rule);
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  }
+  figure.shot .topbar .dots { display: flex; gap: 5px; margin-right: 4px; }
+  figure.shot .topbar .dots span { width: 9px; height: 9px; border-radius: 50%; background: #cbd5e1; }
+  figure.shot .topbar .dots span:nth-child(1) { background: #ef4444; }
+  figure.shot .topbar .dots span:nth-child(2) { background: #f59e0b; }
+  figure.shot .topbar .dots span:nth-child(3) { background: #10b981; }
+  figure.shot img {
+    width: 100%;
+    display: block;
+    background: #fff;
+  }
+  figure.shot figcaption {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: var(--muted);
+    letter-spacing: 0.1px;
+  }
+  figure.shot figcaption .lbl {
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 8px;
+  }
+
+  /* TOC entries */
+  .toc {
+    border-top: 1px solid var(--rule);
+    margin-top: 6mm;
+  }
+  .toc-row {
+    display: grid;
+    grid-template-columns: 38px 1fr 60px;
+    align-items: baseline;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+  }
+  .toc-row .n { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .toc-row .t { color: var(--ink); font-weight: 600; }
+  .toc-row .t .d { color: var(--muted); font-weight: 400; margin-left: 12px; font-size: 12.5px; }
+  .toc-row .p { color: var(--muted); text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* Code block */
+  pre {
+    background: var(--ink);
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 8px 0 14px;
+  }
+  pre .k { color: #c4b5fd; }
+  pre .s { color: #6ee7b7; }
+  pre .c { color: #94a3b8; font-style: italic; }
+  pre .n { color: #fbbf24; }
+
+  /* Pipeline */
+  .pipeline {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+    margin: 4mm 0 6mm;
+  }
+  .stage {
+    flex: 1;
+    background: var(--soft);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 11px;
+    position: relative;
+  }
+  .stage .num {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 18px;
+    margin-bottom: 6px;
+  }
+  .stage .name { font-weight: 600; color: var(--ink); font-size: 11.5px; }
+  .stage .ms { color: var(--muted); font-size: 10px; margin-top: 2px; }
+  .stage::after {
+    content: '';
+    position: absolute;
+    right: -7px; top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 4px solid #cbd5e1;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+  .stage:last-child::after { display: none; }
+
+  /* Layer rows */
+  .layer {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .layer:last-child { border-bottom: none; }
+  .layer .lbl {
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding-top: 1px;
+  }
+  .layer h4 {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 3px;
+  }
+  .layer p { font-size: 12px; margin: 0; color: var(--body); line-height: 1.5; }
+
+  /* Final page */
+  .final-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 24px 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .final-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(at 80% 20%, rgba(99,102,241,0.30), transparent 50%),
+      radial-gradient(at 20% 90%, rgba(6,182,212,0.25), transparent 50%);
+    pointer-events: none;
+  }
+  .final-banner h2 {
+    font-size: 26px;
+    margin: 0 0 8px;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    position: relative;
+    z-index: 1;
+  }
+  .final-banner p {
+    color: rgba(255,255,255,0.78);
+    font-size: 14px;
+    max-width: 480px;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .url-list {
+    margin-top: 6mm;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 18px;
+    font-size: 13px;
+  }
+  .url-list .k {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 2px;
+  }
+  .url-list code { display: inline-block; font-size: 11.5px; }
+
+  /* Two-up screenshot grid */
+  .two-up {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .two-up figure.shot figcaption { font-size: 10.5px; }
+</style>
+</head>
+<body>
+
+<!-- ====================================================================
+     PAGE 1 — COVER
+     ==================================================================== -->
+<section class="page cover">
+  <div class="cover-shape a"></div>
+  <div class="cover-shape b"></div>
+  <div class="cover-inner">
+    <div>
+      <span class="cover-tag"><span class="dot"></span> DevOps Sem IV · Case Study 20</span>
+      <h1>SIM Provisioning <br/><span class="accent">Automation Platform</span></h1>
+      <p class="cover-sub">A telecom-operator pipeline for activating SIM cards — built end-to-end with the full DevOps lifecycle: Docker, Jenkins, Terraform, Kubernetes, Prometheus, Grafana, ELK and Vault.</p>
+
+      <dl class="cover-meta">
+        <div><dt>Author</dt><dd>Sayuj</dd></div>
+        <div><dt>Course</dt><dd>B.Tech CSE · 2024–28</dd></div>
+        <div><dt>Institution</dt><dd>ITM Skills University</dd></div>
+        <div><dt>Submission</dt><dd>June 2026</dd></div>
+      </dl>
+    </div>
+
+    <div class="cover-footer">
+      <span>github.com/Sayuj63/Devops-internals</span>
+      <span>DevOps Lifecycle · Case Study Submission</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====================================================================
+     PAGE 2 — TOC + STATS
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> Table of Contents</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Overview</span>
+    <h2 class="section-h">What this deck covers</h2>
+    <p class="section-sub">A working FastAPI service plus every layer of the DevOps lifecycle that wraps around it — proved out locally with thirteen containers, real metrics, real logs, and a real lifecycle state machine.</p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="v">13</div><div class="k">Containers</div></div>
+    <div class="stat"><div class="v">5,000</div><div class="k">SIMs seeded</div></div>
+    <div class="stat"><div class="v">8</div><div class="k">Alert rules</div></div>
+    <div class="stat"><div class="v">211k<span class="u">+</span></div><div class="k">Log docs</div></div>
+  </div>
+
+  <div class="toc">
+    <div class="toc-row"><span class="n">01</span><span class="t">Project Overview <span class="d">— Problem, solution, scope</span></span><span class="p">p. 3</span></div>
+    <div class="toc-row"><span class="n">02</span><span class="t">Architecture <span class="d">— Components & data flow</span></span><span class="p">p. 4</span></div>
+    <div class="toc-row"><span class="n">03</span><span class="t">The Application <span class="d">— Dashboard, inventory, API</span></span><span class="p">p. 5–7</span></div>
+    <div class="toc-row"><span class="n">04</span><span class="t">Containerization <span class="d">— Docker compose stack</span></span><span class="p">p. 8</span></div>
+    <div class="toc-row"><span class="n">05</span><span class="t">Observability — Metrics <span class="d">— Grafana ops dashboard</span></span><span class="p">p. 9</span></div>
+    <div class="toc-row"><span class="n">06</span><span class="t">Observability — Alerting <span class="d">— Prometheus rules</span></span><span class="p">p. 10</span></div>
+    <div class="toc-row"><span class="n">07</span><span class="t">Observability — Logs <span class="d">— ELK pipeline</span></span><span class="p">p. 11</span></div>
+    <div class="toc-row"><span class="n">08</span><span class="t">Secrets Management <span class="d">— HashiCorp Vault</span></span><span class="p">p. 12</span></div>
+    <div class="toc-row"><span class="n">09</span><span class="t">CI/CD · IaC · Kubernetes <span class="d">— Jenkins, Terraform, K8s</span></span><span class="p">p. 13</span></div>
+    <div class="toc-row"><span class="n">10</span><span class="t">Conclusion & Live URLs <span class="d">— How to run it</span></span><span class="p">p. 14</span></div>
+  </div>
+
+  <div class="pg-num">02</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 3 — 01 OVERVIEW
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 01 · Overview</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 01</span>
+    <h2 class="section-h">Project Overview</h2>
+    <p class="section-sub">A telecom-operator-grade pipeline for activating SIM cards, modelled on real-world pain points and built with production patterns end-to-end.</p>
+  </div>
+
+  <h3>The pain points</h3>
+  <ul>
+    <li><strong>Slow activations</strong> — SIM activation often takes minutes per card; we target sub-second.</li>
+    <li><strong>Inconsistent infra</strong> — every region runs a slightly different copy of the platform.</li>
+    <li><strong>Zero visibility</strong> — when activations get stuck, operators don't know <em>where</em>.</li>
+    <li><strong>Secrets sprawl</strong> — DB passwords, HLR keys and JWT material spread across config files.</li>
+  </ul>
+
+  <h3>What we built</h3>
+  <p>A working <strong>FastAPI</strong> service backed by Postgres, modelling the real telecom state machine: <code>PENDING → ALLOCATED → ACTIVE → SUSPENDED / PORTED / RECYCLED</code>. Every transition writes an immutable audit event. Around it, the full DevOps lifecycle:</p>
+
+  <div class="grid-3" style="margin-top: 8mm;">
+    <div class="card"><h4>Containerization</h4><p>Multi-stage Dockerfiles · non-root · tini PID 1 · compose-orchestrated local stack.</p></div>
+    <div class="card"><h4>CI/CD</h4><p>Jenkins pipeline — 9 stages with Trivy scan, smoke test and manual prod gate.</p></div>
+    <div class="card"><h4>IaC</h4><p>Terraform · VPC · EKS 1.29 · RDS Postgres 15 multi-AZ.</p></div>
+    <div class="card"><h4>Kubernetes</h4><p>Hardened pod-spec, HPA 3–12, PDB, NetworkPolicy, Vault agent injector.</p></div>
+    <div class="card"><h4>Observability</h4><p>Prometheus + Grafana + Alertmanager + ELK — RED metrics + business KPIs.</p></div>
+    <div class="card"><h4>Secrets</h4><p>HashiCorp Vault — kv/sim-prov tree with DB, HLR, JWT and audit-signing keys.</p></div>
+  </div>
+
+  <div class="pg-num">03</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 4 — 02 ARCHITECTURE
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 02 · Architecture</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 02</span>
+    <h2 class="section-h">Architecture &amp; Data Flow</h2>
+    <p class="section-sub">Operators hit the dashboard, which calls the FastAPI service. State lands in Postgres, metrics in Prometheus, logs in ELK, and secrets are pulled from Vault at startup. The async worker drives HLR provisioning — every step audited.</p>
+  </div>
+
+  <div class="layer">
+    <div class="lbl">Frontend</div>
+    <div><h4>Operator Console (Vite + vanilla JS)</h4><p>Live KPI cards, donut by status, audit feed polling every second, inventory table with status pills, transition actions.</p></div>
+  </div>
+  <div class="layer">
+    <div class="lbl">API</div>
+    <div><h4>FastAPI · uvicorn (2 workers)</h4><p>OpenAPI schema, async SQLAlchemy + asyncpg, prometheus_client metrics, structlog JSON logs with request_id propagation.</p></div>
+  </div>
+  <div class="layer">
+    <div class="lbl">Worker</div>
+    <div><h4>Async tick loop · 5s cadence</h4><p>Polls ALLOCATED SIMs, calls mock-HLR for provisioning, transitions to ACTIVE on success — emits HLR call counters labelled by outcome.</p></div>
+  </div>
+  <div class="layer">
+    <div class="lbl">State</div>
+    <div><h4>Postgres 15 · Alembic-managed schema</h4><p>Tables: <code>plans</code>, <code>sims</code>, <code>msisdn_pool</code>, <code>audit_events</code>. Indexed by status and last_transition_at for hot operator queries.</p></div>
+  </div>
+  <div class="layer">
+    <div class="lbl">Observability</div>
+    <div><h4>Prometheus + Grafana + Alertmanager + ELK (Filebeat → Logstash → Elasticsearch → Kibana)</h4><p>RED + business KPIs; 8 alert rules; structured logs flowing live into <code>sim-prov-*</code> indices.</p></div>
+  </div>
+  <div class="layer">
+    <div class="lbl">Secrets</div>
+    <div><h4>HashiCorp Vault · kv-v2 mount at <code>secret/sim-prov</code></h4><p>DB creds, HLR API key, JWT signing keys and audit-signing material — pulled at app start, never written to disk.</p></div>
+  </div>
+
+  <div class="pg-num">04</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 5 — 03 APPLICATION · Operator dashboard
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 03 · Application</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 03</span>
+    <h2 class="section-h">The Application</h2>
+    <p class="section-sub">Operator-facing console &amp; the FastAPI service that drives it. Every screenshot here is the live system serving real data.</p>
+  </div>
+
+  <figure class="shot">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>localhost:5173 — Operator Console</div>
+      <img src="screenshots/01-dashboard-overview.png" alt="Dashboard overview" />
+    </div>
+    <figcaption><span class="lbl">Fig 1</span> Live operator dashboard — active-SIM count, 24h activation series, MSISDN pool gauge, inventory by status donut, real-time audit feed.</figcaption>
+  </figure>
+
+  <div class="pg-num">05</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 6 — 03 APPLICATION · Inventory
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 03 · Application</div>
+
+  <div style="margin-top: 22mm;">
+    <h3 style="margin-top: 0;">Inventory page</h3>
+    <p>Filterable SIM table — status pills, plan, MSISDN, last-transition timestamp, per-row lifecycle actions. Operators land here to suspend / port-out individual SIMs or bulk-allocate from PENDING.</p>
+  </div>
+
+  <figure class="shot" style="margin-top: 8mm;">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>localhost:5173/pages/sims.html?status=ACTIVE</div>
+      <img src="screenshots/02-dashboard-sims.png" alt="SIMs filtered ACTIVE" />
+    </div>
+    <figcaption><span class="lbl">Fig 2</span> SIMs filtered to <code>ACTIVE</code> — status pills + lifecycle actions per row.</figcaption>
+  </figure>
+
+  <div class="pg-num">06</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 7 — 03 APPLICATION · OpenAPI / Swagger
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 03 · Application</div>
+
+  <div style="margin-top: 22mm;">
+    <h3 style="margin-top: 0;">OpenAPI documentation</h3>
+    <p>Auto-generated Swagger UI — every endpoint discoverable with its request/response schema. The SIMs router exposes the full lifecycle as POST endpoints, each enforcing the legal state-machine transitions.</p>
+  </div>
+
+  <figure class="shot" style="margin-top: 8mm;">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>localhost:8000/docs — FastAPI Swagger</div>
+      <img src="screenshots/03-api-swagger.png" alt="API Swagger" />
+    </div>
+    <figcaption><span class="lbl">Fig 3</span> The SIMs router expanded — <code>allocate</code>, <code>activate</code>, <code>suspend</code>, <code>resume</code>, <code>port_out</code>, <code>recycle</code> — each a real state-machine transition guarded server-side.</figcaption>
+  </figure>
+
+  <div class="pg-num">07</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 8 — 04 CONTAINERIZATION
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 04 · Containerization</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 04</span>
+    <h2 class="section-h">Containerization</h2>
+    <p class="section-sub">Thirteen services orchestrated with <code>docker compose</code>: api, worker, postgres, mock-hlr, frontend, vault, prometheus, alertmanager, grafana, elasticsearch, logstash, kibana, filebeat.</p>
+  </div>
+
+  <h3>Image patterns</h3>
+  <ul>
+    <li><strong>Multi-stage builds</strong> — slim runtime; code change rebuilds in seconds via cached layers.</li>
+    <li><strong>Non-root</strong> — dedicated <code>app</code> user, uid 1001, on every image.</li>
+    <li><strong>tini as PID 1</strong> — proper signal handling and zombie reaping.</li>
+    <li><strong>curl healthchecks</strong> — every service has a meaningful <code>/healthz</code> probe.</li>
+  </ul>
+
+  <figure class="shot">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>$ docker compose ps</div>
+      <img src="screenshots/08-docker-ps.png" alt="docker compose ps — 13 services healthy" />
+    </div>
+    <figcaption><span class="lbl">Fig 4</span> All 13 services up; healthchecks green on the critical path (api, worker, postgres, mock-hlr, frontend, elasticsearch).</figcaption>
+  </figure>
+
+  <div class="pg-num">08</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 8 — 05 METRICS
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 05 · Metrics</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 05</span>
+    <h2 class="section-h">Observability — Metrics</h2>
+    <p class="section-sub">RED metrics (rate, errors, duration) layered with business KPIs — every panel queries a metric the API actually exports, validated end-to-end.</p>
+  </div>
+
+  <h3>The exported series</h3>
+  <ul>
+    <li><code>sim_state_transitions_total{from_status, to_status}</code> — every lifecycle move.</li>
+    <li><code>sim_activation_latency_seconds</code> — histogram → p50 / p95 / p99 via recording rules.</li>
+    <li><code>sim_count_by_status{status}</code> — gauge refreshed every 10s by an async background task.</li>
+    <li><code>msisdn_pool_remaining</code>, <code>hlr_calls_total{outcome}</code> — pool depth, HLR success rate.</li>
+  </ul>
+
+  <figure class="shot">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>localhost:3001 — Grafana · SIM Provisioning Operations</div>
+      <img src="screenshots/04-grafana-sim-prov.png" alt="Grafana ops dashboard" />
+    </div>
+    <figcaption><span class="lbl">Fig 5</span> Live data flowing — SIMs by status (donut + stat), MSISDN pool gauge, activation rate, latency p50/p95/p99, HLR call success at 95.1%, state-transitions ops/s, API CPU + resident memory.</figcaption>
+  </figure>
+
+  <div class="pg-num">09</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 9 — 06 ALERTING
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 06 · Alerting</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 06</span>
+    <h2 class="section-h">Observability — Alerting</h2>
+    <p class="section-sub">Eight Prometheus alert rules covering errors, latency, capacity, infra health and certificate hygiene — each one carrying a runbook URL on the annotation.</p>
+  </div>
+
+  <table class="rules" style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom: 6mm;">
+    <thead>
+      <tr style="border-bottom:1px solid var(--rule);">
+        <th style="text-align:left;padding:8px 6px;color:var(--muted);font-weight:600;font-size:10.5px;letter-spacing:0.6px;text-transform:uppercase;">Rule</th>
+        <th style="text-align:left;padding:8px 6px;color:var(--muted);font-weight:600;font-size:10.5px;letter-spacing:0.6px;text-transform:uppercase;">Trigger</th>
+        <th style="text-align:left;padding:8px 6px;color:var(--muted);font-weight:600;font-size:10.5px;letter-spacing:0.6px;text-transform:uppercase;">Severity</th>
+      </tr>
+    </thead>
+    <tbody style="font-family:'JetBrains Mono','SF Mono',Menlo,monospace;font-size:11.5px;">
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">HighErrorRate</td><td style="padding:7px 6px;color:var(--body);">5xx ratio &gt; 5% for 10m</td><td style="padding:7px 6px;"><span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">critical</span></td></tr>
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">HighActivationLatency</td><td style="padding:7px 6px;color:var(--body);">p95 &gt; 5s for 15m</td><td style="padding:7px 6px;"><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">warning</span></td></tr>
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">MsisdnPoolLow</td><td style="padding:7px 6px;color:var(--body);">pool &lt; 1000 for 5m</td><td style="padding:7px 6px;"><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">warning</span></td></tr>
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">MsisdnPoolExhausted</td><td style="padding:7px 6px;color:var(--body);">pool &lt; 100 for 1m</td><td style="padding:7px 6px;"><span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">critical</span></td></tr>
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">DBDown</td><td style="padding:7px 6px;color:var(--body);"><code style="font-size:11px;">pg_up == 0</code> for 2m</td><td style="padding:7px 6px;"><span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">critical</span></td></tr>
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">PodCrashLooping</td><td style="padding:7px 6px;color:var(--body);">restart rate &gt; 0 for 10m</td><td style="padding:7px 6px;"><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">warning</span></td></tr>
+      <tr style="border-bottom:1px solid var(--rule);"><td style="padding:7px 6px;color:var(--ink);font-weight:600;">CertExpiringSoon</td><td style="padding:7px 6px;color:var(--body);">TLS cert &lt; 14 days</td><td style="padding:7px 6px;"><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">warning</span></td></tr>
+      <tr><td style="padding:7px 6px;color:var(--ink);font-weight:600;">HlrCallFailureRateHigh</td><td style="padding:7px 6px;color:var(--body);">success &lt; 95% for 10m</td><td style="padding:7px 6px;"><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;">warning</span></td></tr>
+    </tbody>
+  </table>
+
+  <figure class="shot">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>localhost:9090/alerts</div>
+      <img src="screenshots/05-prometheus-alerts.png" alt="Prometheus alerts" />
+    </div>
+    <figcaption><span class="lbl">Fig 6</span> All 8 rules loaded from <code>sim-prov.rules.yml</code>, all inactive — the desired steady state.</figcaption>
+  </figure>
+
+  <div class="pg-num">10</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 10 — 07 LOGS
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 07 · Logs</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 07</span>
+    <h2 class="section-h">Observability — Logs</h2>
+    <p class="section-sub">Filebeat tails every container's stdout, ships to Logstash, which parses JSON-structured app logs and indexes into Elasticsearch — searchable in Kibana with the operator's full request_id trail.</p>
+  </div>
+
+  <h3>The pipeline</h3>
+  <div class="pipeline">
+    <div class="stage"><div class="num">1</div><div class="name">App</div><div class="ms">structlog JSON</div></div>
+    <div class="stage"><div class="num">2</div><div class="name">stdout</div><div class="ms">Docker logs</div></div>
+    <div class="stage"><div class="num">3</div><div class="name">Filebeat</div><div class="ms">autodiscover</div></div>
+    <div class="stage"><div class="num">4</div><div class="name">Logstash</div><div class="ms">parse + enrich</div></div>
+    <div class="stage"><div class="num">5</div><div class="name">Elasticsearch</div><div class="ms">sim-prov-* index</div></div>
+    <div class="stage"><div class="num">6</div><div class="name">Kibana</div><div class="ms">Discover + dashboards</div></div>
+  </div>
+
+  <figure class="shot">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>localhost:5601 — Kibana Discover · last 24h</div>
+      <img src="screenshots/06-kibana-discover.png" alt="Kibana Discover" />
+    </div>
+    <figcaption><span class="lbl">Fig 7</span> 211,153 documents in the <code>sim-prov-*</code> index over the last 24h — timestamp histogram showing the live traffic burst, and the operator's request log entries below with <code>service / level / logger / event</code> columns.</figcaption>
+  </figure>
+
+  <div class="pg-num">11</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 11 — 08 SECRETS
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 08 · Secrets</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 08</span>
+    <h2 class="section-h">Secrets Management</h2>
+    <p class="section-sub">HashiCorp Vault running in dev mode for the local stack, hardened K8s deployment pattern for production with the Vault Agent Injector rendering secrets at pod start.</p>
+  </div>
+
+  <h3>What we store</h3>
+  <ul>
+    <li><code>secret/sim-prov/db</code> — Postgres host, port, user, password, dbname.</li>
+    <li><code>secret/sim-prov/hlr</code> — HLR mock endpoint and API key.</li>
+    <li><code>secret/sim-prov/jwt</code> — signing key and algorithm for the operator console.</li>
+    <li><code>secret/sim-prov/audit-signing</code> — HMAC key used to sign every audit-event row.</li>
+  </ul>
+
+  <h3>Read pattern</h3>
+  <p>The API at startup makes one call to <code>vault kv get secret/sim-prov/db</code>, populates the SQLAlchemy DSN, then drops the token. Production uses the K8s Vault Agent Injector with auto-renewal and never writes secrets to disk.</p>
+
+  <figure class="shot">
+    <div class="frame">
+      <div class="topbar"><div class="dots"><span></span><span></span><span></span></div>vault kv list/get · secret/sim-prov</div>
+      <img src="screenshots/07-vault-ui.png" alt="Vault secrets tree" />
+    </div>
+    <figcaption><span class="lbl">Fig 8</span> The live kv-v2 tree — values masked for the deck; in dev the root token is <code>root-dev-token</code> and connectors resolve at startup.</figcaption>
+  </figure>
+
+  <div class="pg-num">12</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 12 — 09 CI/CD · IAC · K8s
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 09 · CI/CD · IaC · K8s</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 09</span>
+    <h2 class="section-h">CI/CD · IaC · Kubernetes</h2>
+    <p class="section-sub">The pipeline and the cloud target — Jenkins driving Terraform-provisioned EKS, with a hardened pod spec and Vault-injected secrets.</p>
+  </div>
+
+  <h3>Jenkins pipeline · 9 stages</h3>
+  <div class="pipeline">
+    <div class="stage"><div class="num">1</div><div class="name">Checkout</div><div class="ms">~4s</div></div>
+    <div class="stage"><div class="num">2</div><div class="name">Lint</div><div class="ms">~18s</div></div>
+    <div class="stage"><div class="num">3</div><div class="name">Test</div><div class="ms">~52s</div></div>
+    <div class="stage"><div class="num">4</div><div class="name">Build</div><div class="ms">~1m 12s</div></div>
+    <div class="stage"><div class="num">5</div><div class="name">Scan</div><div class="ms">Trivy · ~34s</div></div>
+    <div class="stage"><div class="num">6</div><div class="name">Push</div><div class="ms">ECR</div></div>
+    <div class="stage"><div class="num">7</div><div class="name">Stage</div><div class="ms">Kustomize</div></div>
+    <div class="stage"><div class="num">8</div><div class="name">Approve</div><div class="ms">manual gate</div></div>
+    <div class="stage"><div class="num">9</div><div class="name">Prod</div><div class="ms">+ Slack</div></div>
+  </div>
+
+  <h3>Terraform · production target</h3>
+  <pre><span class="c"># terraform/envs/prod/main.tf — abbreviated</span>
+<span class="k">module</span> <span class="s">"vpc"</span>     { source = <span class="s">"../../modules/vpc"</span>     azs = <span class="n">3</span>  cidr = <span class="s">"10.20.0.0/16"</span> }
+<span class="k">module</span> <span class="s">"eks"</span>     { source = <span class="s">"../../modules/eks"</span>     version = <span class="s">"1.29"</span>  irsa = <span class="n">true</span> }
+<span class="k">module</span> <span class="s">"rds_pg"</span>  { source = <span class="s">"../../modules/rds_pg"</span>  multi_az = <span class="n">true</span>  backup_retention = <span class="n">7</span> }</pre>
+
+  <h3>Kubernetes · hardened pod spec</h3>
+  <ul>
+    <li>Non-root, read-only root filesystem, all caps dropped, <code>seccompProfile: RuntimeDefault</code>.</li>
+    <li>HPA 3–12 replicas at 70% CPU; PDB <code>minAvailable: 2</code>; NetworkPolicy restricting ingress and egress.</li>
+    <li>Topology spread across zones; Vault Agent Injector annotations render secrets at startup.</li>
+  </ul>
+
+  <div class="pg-num">13</div>
+</section>
+
+<!-- ====================================================================
+     PAGE 13 — 10 CONCLUSION
+     ==================================================================== -->
+<section class="page">
+  <div class="pg-mark"><span class="bar"></span> 10 · Conclusion</div>
+
+  <div style="margin-top: 22mm;">
+    <span class="section-no">Section 10</span>
+    <h2 class="section-h">Conclusion &amp; Live URLs</h2>
+    <p class="section-sub">Everything in this deck is reproducible in three commands.</p>
+  </div>
+
+  <div class="final-banner">
+    <h2>Run the whole stack locally</h2>
+    <p>Clone, build images, seed data, smoke-test — all 13 containers come up healthy and traffic starts flowing in under three minutes.</p>
+    <pre style="background: rgba(0,0,0,0.30); border:1px solid rgba(255,255,255,0.10); margin: 14px 0 0; color: #e2e8f0;">git clone https://github.com/Sayuj63/Devops-internals.git
+cd Devops-internals
+make up &amp;&amp; make seed &amp;&amp; make smoke</pre>
+  </div>
+
+  <h3 style="margin-top: 8mm;">Live URLs</h3>
+  <div class="url-list">
+    <div><div class="k">Operator dashboard</div><code>http://localhost:5173</code></div>
+    <div><div class="k">API · Swagger</div><code>http://localhost:8000/docs</code></div>
+    <div><div class="k">Grafana</div><code>http://localhost:3001</code></div>
+    <div><div class="k">Prometheus</div><code>http://localhost:9090</code></div>
+    <div><div class="k">Alertmanager</div><code>http://localhost:9093</code></div>
+    <div><div class="k">Kibana</div><code>http://localhost:5601</code></div>
+    <div><div class="k">Vault</div><code>http://localhost:8200</code></div>
+    <div><div class="k">Mock HLR</div><code>http://localhost:9000/docs</code></div>
+  </div>
+
+  <h3 style="margin-top: 8mm;">Out of local scope (per PLAN.md §8)</h3>
+  <p>Real AWS apply, real Vault unseal flow, real HLR integration, full load test — all in the repo as code, not deployed in this submission.</p>
+
+  <h3>Repository</h3>
+  <p><code>github.com/Sayuj63/Devops-internals</code> · main branch · all 8 screenshots live under <code>docs/screenshots/</code>.</p>
+
+  <div class="pg-num">14</div>
+</section>
+
+</body>
+</html>
