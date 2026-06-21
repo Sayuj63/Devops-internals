@@ -23,6 +23,12 @@ msisdn_pool_remaining = Gauge(
     "Number of unallocated MSISDNs left in the pool.",
 )
 
+sim_count_by_status = Gauge(
+    "sim_count_by_status",
+    "Number of SIMs in each lifecycle status (refreshed periodically).",
+    labelnames=("status",),
+)
+
 hlr_calls_total = Counter(
     "hlr_calls_total",
     "Total HLR/HSS provisioning calls by outcome.",

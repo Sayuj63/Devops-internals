@@ -29,8 +29,8 @@ probe /readyz  200
 
 # /api/v1/sims should return JSON list with the expected shape.
 code=$(curl --silent --show-error --max-time "$TIMEOUT" \
-            -o "$TMP/api/v1/sims.json" -w '%{http_code}' "${BASE}/api/v1/sims?limit=5")
-[[ "$code" == "200" ]] || fail "/api/v1/sims?limit=5 → ${code}; body: $(head -c 200 "$TMP/api/v1/sims.json")"
+            -o "$TMP/sims.json" -w '%{http_code}' "${BASE}/api/v1/sims?limit=5")
+[[ "$code" == "200" ]] || fail "/api/v1/sims?limit=5 → ${code}; body: $(head -c 200 "$TMP/sims.json")"
 
 count=$(python3 -c '
 import json, sys
@@ -41,7 +41,7 @@ for s in items[:5]:
     for f in ("iccid", "status"):
         assert f in s, f"missing field {f}"
 print(len(items))
-' "$TMP/api/v1/sims.json")
+' "$TMP/sims.json")
 
 ok "/api/v1/sims returned ${count} item(s) with iccid + status"
 

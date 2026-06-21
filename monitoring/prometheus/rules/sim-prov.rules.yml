@@ -12,18 +12,18 @@ groups:
           clamp_min(sum by (service) (rate(http_requests_total{service="api"}[5m])), 1e-9)
 
       - record: sim:activation_latency_seconds:p50
-        expr: histogram_quantile(0.50, sum by (le) (rate(sim_activation_duration_seconds_bucket[5m])))
+        expr: histogram_quantile(0.50, sum by (le) (rate(sim_activation_latency_seconds_bucket[5m])))
       - record: sim:activation_latency_seconds:p95
-        expr: histogram_quantile(0.95, sum by (le) (rate(sim_activation_duration_seconds_bucket[5m])))
+        expr: histogram_quantile(0.95, sum by (le) (rate(sim_activation_latency_seconds_bucket[5m])))
       - record: sim:activation_latency_seconds:p99
-        expr: histogram_quantile(0.99, sum by (le) (rate(sim_activation_duration_seconds_bucket[5m])))
+        expr: histogram_quantile(0.99, sum by (le) (rate(sim_activation_latency_seconds_bucket[5m])))
 
       - record: sim:msisdn_pool_remaining
-        expr: msisdn_pool_size - msisdn_pool_allocated
+        expr: msisdn_pool_remaining
 
       - record: sim:hlr_call_success_rate:5m
         expr: |
-          sum(rate(hlr_calls_total{result="success"}[5m]))
+          sum(rate(hlr_calls_total{outcome="success"}[5m]))
           /
           clamp_min(sum(rate(hlr_calls_total[5m])), 1e-9)
 

@@ -1,19 +1,22 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 from typing import AsyncIterator
 
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from starlette.responses import Response
 
 from app.config import get_settings
 from app.db import SessionLocal, engine
 from app.exceptions import register_exception_handlers
+from app.metrics import sim_count_by_status
 from app.middleware import RequestContextMiddleware, configure_logging
+from app.models import SIM, SimStatus
 from app.routers import audit as audit_router
 from app.routers import plans as plans_router
 from app.routers import sims as sims_router
@@ -21,20 +24,54 @@ from app.routers import stats as stats_router
 from app.services.msisdn_pool import MsisdnPool
 
 
+async def _refresh_sim_status_gauge() -> None:
+    async with SessionLocal() as session:
+        rows = (
+            await session.execute(
+                select(SIM.status, func.count(SIM.iccid)).group_by(SIM.status)
+            )
+        ).all()
+    seen: set[str] = set()
+    for status, count in rows:
+        label = status.value if hasattr(status, "value") else str(status)
+        sim_count_by_status.labels(status=label).set(count)
+        seen.add(label)
+    # Make sure every possible status appears even when count is zero so
+    # Grafana panels don't go "No data" on idle buckets.
+    for st in SimStatus:
+        if st.value not in seen:
+            sim_count_by_status.labels(status=st.value).set(0)
+
+
+async def _sim_status_gauge_loop(log: structlog.stdlib.BoundLogger) -> None:
+    while True:
+        try:
+            await _refresh_sim_status_gauge()
+        except Exception as exc:  # pragma: no cover - background task
+            log.warning("sim_count_gauge_refresh_failed", error=str(exc))
+        await asyncio.sleep(10)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     log = structlog.get_logger("startup")
     log.info("app_starting", env=get_settings().env)
-    # Warm the pool gauge on startup so /metrics is meaningful immediately.
     try:
         async with SessionLocal() as session:
             await MsisdnPool(session).refresh_gauge()
+        await _refresh_sim_status_gauge()
     except Exception as exc:  # pragma: no cover - bootstrap path
         log.warning("pool_gauge_warmup_failed", error=str(exc))
-    yield
-    await engine.dispose()
-    log.info("app_stopped")
+    bg = asyncio.create_task(_sim_status_gauge_loop(log))
+    try:
+        yield
+    finally:
+        bg.cancel()
+        with suppress(asyncio.CancelledError):
+            await bg
+        await engine.dispose()
+        log.info("app_stopped")
 
 
 def create_app() -> FastAPI:

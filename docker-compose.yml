@@ -86,7 +86,6 @@ services:
       - "8000:8000"
     labels:
       co.elastic.logs/enabled: "true"
-      co.elastic.logs/json.keys_under_root: "true"
       prometheus.scrape: "true"
       prometheus.port: "8000"
       prometheus.path: "/metrics"
@@ -118,7 +117,6 @@ services:
       WORKER_LIVENESS_FILE: /tmp/worker.alive
     labels:
       co.elastic.logs/enabled: "true"
-      co.elastic.logs/json.keys_under_root: "true"
     networks: [provisioning-net]
     logging: *default-logging
 
