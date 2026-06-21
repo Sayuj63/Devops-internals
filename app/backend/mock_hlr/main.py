@@ -63,7 +63,7 @@ async def healthz() -> dict[str, str]:
 @app.post("/hlr/provision", response_model=ProvisionResponse)
 async def provision(req: ProvisionRequest) -> ProvisionResponse:
     started = time.perf_counter()
-    delay = await _simulate_latency()
+    await _simulate_latency()
     if _rng.random() < FAILURE_RATE:
         raise HTTPException(status_code=503, detail="HLR transient failure")
     ref = f"HLR-{uuid.uuid4().hex[:16].upper()}"

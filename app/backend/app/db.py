@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from typing import Any
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -19,7 +18,6 @@ class Base(DeclarativeBase):
 
 
 def _build_engine(url: str) -> AsyncEngine:
-    connect_args: dict[str, Any] = {}
     if url.startswith("sqlite"):
         # StaticPool keeps a single underlying connection alive — required for
         # `:memory:` and shared-cache in-memory URIs (each new connection would

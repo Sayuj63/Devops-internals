@@ -33,7 +33,6 @@ async def stats(
         by_status[s.value if hasattr(s, "value") else str(s)] = int(c)
 
     now = datetime.now(timezone.utc)
-    since = now - timedelta(hours=24)
     bucket_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=23)
 
     buckets: list[ActivationBucket] = []
